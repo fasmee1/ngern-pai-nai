@@ -16,9 +16,8 @@
 
 ## ยังต้องทำ
 
-1. **รันไฟล์ฐานข้อมูล** `supabase/migrations/0001_init.sql` ใน SQL Editor ของ Supabase
-   (ต้องทำก่อนใช้งาน ไม่อย่างนั้นข้อมูลจะบันทึกไม่ได้)
-2. **นำขึ้นออนไลน์** ที่ Vercel ต้องใช้บัญชี Vercel ของเจ้าของระบบ และใส่ค่า URL กับ publishable key เหมือนใน `.env.local`
+1. ~~รันไฟล์ฐานข้อมูล~~ ทำแล้ว (รัน `supabase/migrations/0001_init.sql` ใน Supabase เรียบร้อย)
+2. **นำขึ้นออนไลน์** ที่ Vercel: สร้างโปรเจกต์ ngern-pai-nai และใส่ค่า URL กับ publishable key แล้ว (ดูที่อยู่เว็บในหน้า Vercel)
 3. **เพิ่มโดเมนจริง** ใน Supabase > URL Configuration และใน Google Cloud (Authorized redirect URI ยังเป็น supabase callback เดิม)
 4. **ตรวจกฎเรื่อง PDPA** กับผู้รู้ด้านกฎหมาย และแก้นโยบายให้เหมาะกับการเปิดให้คนทั่วไปใช้
 5. **ตอนเปิดใช้จริง** ควรออกจากโหมดทดสอบของ Google (Publish app) หลังทำ Branding ให้ครบ
