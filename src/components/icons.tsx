@@ -16,6 +16,7 @@ import {
   Sun,
   Tag,
   Target,
+  PiggyBank,
   Undo2,
   User,
   Utensils,
@@ -44,6 +45,7 @@ function wrap(Icon: React.ComponentType<LucideProps>) {
 export const IconSummary = wrap(ChartPie);
 export const IconList = wrap(Receipt);
 export const IconBudget = wrap(Target);
+export const IconTarget = wrap(PiggyBank);
 export const IconAccount = wrap(User);
 export const IconAdd = wrap(Plus);
 export const IconBack = wrap(ArrowLeft);

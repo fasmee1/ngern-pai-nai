@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseAvatarColor, parseBaht, parseCategoryName, parseDisplayName, parseId, parseMonth, parseTransactionForm, parseTransferForm } from "@/lib/input";
-import { todayInBangkok } from "@/lib/dates";
+import { monthStart, todayInBangkok } from "@/lib/dates";
+import { parseDeadline, parseDueDay } from "@/lib/plans";
 import { BANKS, parseBankCodes } from "@/lib/banks";
 import { MAX_SPEAK_CHARS } from "@/lib/ai-prompt";
 import { askGeminiJson, speakGemini } from "@/lib/gemini";
@@ -264,4 +265,128 @@ export async function parseEntryText(text: string): Promise<{ ok: true; entry: Q
   const entry = parseEntry(raw, categories, today);
   if (!entry) return { ok: false, error: "AI อ่านจำนวนเงินไม่ออก ลองพิมพ์ใหม่ เช่น กินข้าว 60" };
   return { ok: true, entry };
+}
+
+// Savings goals. The saved amount is money the person sets aside by hand; nothing moves between accounts.
+export async function addGoal(name: string, targetText: string, deadline: string): Promise<Result> {
+  const supabase = await signedInClient();
+  if (!supabase) return NOT_SIGNED_IN;
+  const cleanName = parseCategoryName(name);
+  if (!cleanName) return { ok: false, error: "ตั้งชื่อเป้าหมายก่อนนะ (ไม่เกิน 40 ตัวอักษร)" };
+  const target = parseBaht(targetText);
+  if (target === null) return { ok: false, error: "ใส่เป้าหมายเป็นตัวเลข เช่น 50000" };
+  let due: string | null = null;
+  if (deadline.trim() !== "") {
+    due = parseDeadline(deadline, todayInBangkok());
+    if (!due) return { ok: false, error: "วันที่ครบกำหนดต้องไม่ใช่วันที่ผ่านมาแล้วนะ" };
+  }
+  const { error } = await supabase.from("savings_goals").insert({ name: cleanName, target_satang: target, deadline: due });
+  if (error) return SAVE_FAILED;
+  revalidatePath("/plans");
+  return { ok: true };
+}
+
+export async function depositGoal(id: string, amountText: string): Promise<Result> {
+  const supabase = await signedInClient();
+  if (!supabase) return NOT_SIGNED_IN;
+  const safeId = parseId(id);
+  if (!safeId) return SAVE_FAILED;
+  const amount = parseBaht(amountText);
+  if (amount === null) return { ok: false, error: "ใส่จำนวนเงินเป็นตัวเลข เช่น 500" };
+
+  const { data: goal, error: readError } = await supabase.from("savings_goals").select("saved_satang").eq("id", safeId).is("deleted_at", null).single();
+  if (readError || !goal) return SAVE_FAILED;
+  const next = Math.min(Number(goal.saved_satang) + amount, 100_000_000_000);
+  const { error } = await supabase.from("savings_goals").update({ saved_satang: next }).eq("id", safeId);
+  if (error) return SAVE_FAILED;
+  revalidatePath("/plans");
+  return { ok: true };
+}
+
+export async function deleteGoal(id: string): Promise<Result> {
+  const supabase = await signedInClient();
+  if (!supabase) return NOT_SIGNED_IN;
+  const safeId = parseId(id);
+  if (!safeId) return SAVE_FAILED;
+  const { error } = await supabase.from("savings_goals").update({ deleted_at: new Date().toISOString() }).eq("id", safeId);
+  if (error) return SAVE_FAILED;
+  revalidatePath("/plans");
+  return { ok: true };
+}
+
+// Monthly bills. A bill only reminds; paying one writes a normal expense for today.
+export async function addBill(name: string, amountText: string, dueDay: string, categoryId: string, accountId: string): Promise<Result> {
+  const supabase = await signedInClient();
+  if (!supabase) return NOT_SIGNED_IN;
+  const cleanName = parseCategoryName(name);
+  if (!cleanName) return { ok: false, error: "ตั้งชื่อบิลก่อนนะ เช่น ค่าเน็ต" };
+  const amount = parseBaht(amountText);
+  if (amount === null) return { ok: false, error: "ใส่จำนวนเงินเป็นตัวเลข เช่น 599" };
+  const day = parseDueDay(dueDay);
+  if (day === null) return { ok: false, error: "วันที่ครบกำหนดต้องเป็น 1 ถึง 28" };
+  const category = parseId(categoryId);
+  if (!category) return { ok: false, error: "เลือกหมวดก่อนนะ" };
+  const account = parseId(accountId);
+
+  const { error } = await supabase
+    .from("recurring_bills")
+    .insert({ name: cleanName, amount_satang: amount, due_day: day, category_id: category, account_id: account });
+  if (error) return SAVE_FAILED;
+  revalidatePath("/plans");
+  return { ok: true };
+}
+
+// Writes this month's expense for a bill and marks it paid for the month.
+export async function payBill(id: string): Promise<Result> {
+  const supabase = await signedInClient();
+  if (!supabase) return NOT_SIGNED_IN;
+  const safeId = parseId(id);
+  if (!safeId) return SAVE_FAILED;
+
+  const { data: bill } = await supabase
+    .from("recurring_bills")
+    .select("name, amount_satang, category_id, account_id")
+    .eq("id", safeId)
+    .is("deleted_at", null)
+    .single();
+  if (!bill) return SAVE_FAILED;
+
+  const today = todayInBangkok();
+  const month = monthStart(today);
+
+  // Mark the month first, only if it is still unpaid, so a double tap cannot write two expenses.
+  const { data: marked } = await supabase
+    .from("recurring_bills")
+    .update({ last_paid_month: month })
+    .eq("id", safeId)
+    .or(`last_paid_month.is.null,last_paid_month.neq.${month}`)
+    .select("id");
+  if (!marked || marked.length === 0) return { ok: false, error: "บิลนี้จดไปแล้วในเดือนนี้" };
+
+  const { error } = await supabase.from("transactions").insert({
+    type: "expense",
+    amount_satang: bill.amount_satang,
+    category_id: bill.category_id,
+    account_id: bill.account_id,
+    occurred_on: today,
+    note: bill.name,
+  });
+  if (error) {
+    await supabase.from("recurring_bills").update({ last_paid_month: null }).eq("id", safeId);
+    return SAVE_FAILED;
+  }
+  revalidatePath("/");
+  revalidatePath("/plans");
+  return { ok: true };
+}
+
+export async function deleteBill(id: string): Promise<Result> {
+  const supabase = await signedInClient();
+  if (!supabase) return NOT_SIGNED_IN;
+  const safeId = parseId(id);
+  if (!safeId) return SAVE_FAILED;
+  const { error } = await supabase.from("recurring_bills").update({ deleted_at: new Date().toISOString() }).eq("id", safeId);
+  if (error) return SAVE_FAILED;
+  revalidatePath("/plans");
+  return { ok: true };
 }

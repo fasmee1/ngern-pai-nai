@@ -1999,3 +1999,12 @@ html[data-theme="dark"] .acct-chip[aria-checked="true"] { background: #25244a; }
 .ai-table tr:last-child td { border-bottom: 0; }
 .ai-listen { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 0 14px; border: 1px solid rgb(145 141 246 / 0.4); border-radius: 999px; background: transparent; color: inherit; font: inherit; font-size: 14px; cursor: pointer; }
 .ai-listen[aria-pressed="true"] { background: rgb(145 141 246 / 0.18); }
+
+/* Savings goals and bills */
+.plan-item { align-items: flex-start; }
+.plan-item .wal-text { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1; }
+.plan-bar { display: block; height: 8px; border-radius: 99px; background: rgba(120, 120, 140, 0.18); overflow: hidden; }
+.plan-bar > span { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #918df6, #2c78fc); }
+.plan-deposit { display: flex; gap: 8px; }
+.plan-deposit input { flex: 1; min-width: 0; min-height: 40px; border-radius: 12px; border: 1px solid rgba(120, 120, 140, 0.3); padding: 0 12px; background: transparent; color: inherit; }
+.primary.small { min-height: 36px; padding: 0 14px; font-size: 14px; flex: none; }

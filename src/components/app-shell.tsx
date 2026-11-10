@@ -5,7 +5,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { IconAccount, IconAdd, IconTransfer, IconBudget, IconList, IconSummary } from "./icons";
+import { IconAccount, IconAdd, IconTransfer, IconBudget, IconList, IconSummary, IconTarget } from "./icons";
 import { Avatar } from "./avatar";
 import { LogoLockup } from "./logo";
 import { AiChat } from "./ai-chat";
@@ -47,6 +47,7 @@ export function AppShell({
         <div className="appbar-brand">
           <LogoLockup size={34} id="logo-app" />
           <div className="appbar-actions">
+            <Link href="/plans" className="icon-btn" aria-label="เป้าหมายออมเงินและบิลประจำเดือน"><IconTarget size={20} /></Link>
             <Link href="/wallets" className="icon-btn" aria-label="บัญชีเงินและย้ายเงิน"><IconTransfer size={20} /></Link>
             <Link href={accountHref} className="avatar" aria-label="โปรไฟล์และบัญชีของฉัน">
               {profile ? <Avatar name={profile.name} color={profile.color} size={44} photo={profile.photo ?? null} /> : <IconAccount size={20} />}

@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { monthEnd, monthStart, monthsBefore, previousMonthStart, todayInBangkok } from "@/lib/dates";
 import type { Category, Transaction } from "@/lib/summary";
+import type { Bill, Goal } from "@/lib/plans";
 
 export type Account = { id: string; name: string; bankCode?: string | null };
 
@@ -152,6 +153,47 @@ export async function loadWallets(): Promise<WalletsData> {
       occurredOn: t.occurred_on,
       note: t.note,
     })),
+  };
+}
+
+export type PlansData = {
+  goals: Goal[];
+  bills: Bill[];
+  categories: { id: string; name: string; color: string }[];
+  accounts: Account[];
+};
+
+export async function loadPlans(): Promise<PlansData> {
+  const supabase = await createSupabaseServerClient();
+  const [goals, bills, categories, accounts] = await Promise.all([
+    supabase.from("savings_goals").select("id, name, target_satang, saved_satang, deadline").is("deleted_at", null).order("created_at"),
+    supabase
+      .from("recurring_bills")
+      .select("id, name, amount_satang, category_id, account_id, due_day, last_paid_month")
+      .is("deleted_at", null)
+      .order("due_day"),
+    supabase.from("categories").select("id, name, color").eq("type", "expense").order("created_at"),
+    supabase.from("accounts").select("id, name, bank_code").order("created_at"),
+  ]);
+  return {
+    goals: (goals.data ?? []).map((g) => ({
+      id: g.id,
+      name: g.name,
+      targetSatang: Number(g.target_satang),
+      savedSatang: Number(g.saved_satang),
+      deadline: g.deadline,
+    })),
+    bills: (bills.data ?? []).map((b) => ({
+      id: b.id,
+      name: b.name,
+      amountSatang: Number(b.amount_satang),
+      categoryId: b.category_id,
+      accountId: b.account_id,
+      dueDay: b.due_day,
+      lastPaidMonth: b.last_paid_month,
+    })),
+    categories: (categories.data ?? []).map((c) => ({ id: c.id, name: c.name, color: c.color })),
+    accounts: (accounts.data ?? []).map((a) => ({ id: a.id, name: a.name, bankCode: a.bank_code })),
   };
 }
 
