@@ -2009,9 +2009,31 @@ html[data-theme="dark"] .acct-chip[aria-checked="true"] { background: #25244a; }
 .plan-deposit input { flex: 1; min-width: 0; min-height: 40px; border-radius: 12px; border: 1px solid rgba(120, 120, 140, 0.3); padding: 0 12px; background: transparent; color: inherit; }
 .primary.small { min-height: 36px; padding: 0 14px; font-size: 14px; flex: none; }
 
-/* Shortcut pills under the header */
-.shortcuts { display: flex; gap: 8px; margin-bottom: 12px; }
-.shortcut { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-height: 44px; padding: 0 12px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; color: inherit; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(120, 120, 140, 0.2); backdrop-filter: blur(12px); }
-.shortcut:hover { background: rgba(255, 255, 255, 0.9); }
-html[data-theme="dark"] .shortcut { background: rgba(255, 255, 255, 0.08); }
-html[data-theme="dark"] .shortcut:hover { background: rgba(255, 255, 255, 0.14); }
+/* Professional finish: quiet shortcuts, tabular money, themed selection and focus */
+.shortcuts { display: flex; gap: 8px; margin-bottom: 4px; }
+.shortcut {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-height: 44px; padding: 0 14px;
+  border: 1px solid var(--line); border-radius: 14px; background: rgb(var(--surface-rgb) / 0.72);
+  color: var(--ink-soft); font-size: 13px; font-weight: 500; letter-spacing: 0.01em; text-decoration: none;
+  transition: border-color 0.2s var(--ease-out), background-color 0.2s var(--ease-out), color 0.2s var(--ease-out), transform 0.2s var(--ease-out);
+}
+.shortcut svg { color: #6f6bdc; flex: none; }
+.shortcut:hover { border-color: #918df6; background: rgb(var(--surface-rgb) / 0.95); color: var(--ink); }
+.shortcut:active { transform: scale(0.98); }
+
+.appbar-title { letter-spacing: -0.02em; text-wrap: balance; }
+.headline { letter-spacing: -0.01em; }
+.eyebrow-note { font-weight: 500; letter-spacing: 0.02em; }
+
+.donut-value, .stat dd, .tx-amount, .wal-amount, .wal-total-num, .ai-bar-value, .ai-table td, .cmp-card strong {
+  font-variant-numeric: tabular-nums;
+}
+.donut-value { letter-spacing: -0.03em; }
+
+.stat { border-radius: 18px; box-shadow: rgb(24 25 37 / 0.04) 0 1px 2px, rgb(61 66 160 / 0.06) 0 8px 20px; }
+.stat dt { letter-spacing: 0.02em; color: var(--ink-soft); }
+.stat dd { letter-spacing: -0.02em; }
+
+::selection { background: rgb(145 141 246 / 0.28); color: inherit; }
+:where(a, button, input, select, textarea, [role="radio"]):focus-visible { outline: 2px solid #918df6; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .shortcut { transition: none; } .shortcut:active { transform: none; } }
