@@ -1908,3 +1908,11 @@ html[data-theme="dark"] .acct-chip[aria-checked="true"] { background: #25244a; }
 .setup-card { height: calc(100dvh - 56px); min-height: 480px; }
 .setup-card .bank-picker { flex: 1; min-height: 0; grid-template-rows: auto minmax(0, 1fr) auto auto; }
 .setup-card .bank-grid { max-height: none; min-height: 0; }
+
+/* Theme picker: three equal options, icon above the label on narrow screens */
+.theme-picker { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+.theme-picker button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; padding: 6px 4px; font-size: 13px; line-height: 1.2; }
+.theme-picker button span { white-space: nowrap; }
+@media (min-width: 480px) {
+  .theme-picker button { flex-direction: row; gap: 8px; min-height: 48px; font-size: 14px; }
+}

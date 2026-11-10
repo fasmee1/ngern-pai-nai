@@ -1,10 +1,12 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
+import { IconMoon, IconSun, IconSystem } from "./icons";
 
 type Mode = "system" | "light" | "dark";
 const KEY = "jarvis-theme";
 const LABELS: Record<Mode, string> = { system: "ตามเครื่อง", light: "สว่าง", dark: "มืด" };
+const ICONS = { system: IconSystem, light: IconSun, dark: IconMoon };
 
 function apply(mode: Mode) {
   const dark = mode === "dark" || (mode === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
@@ -35,11 +37,15 @@ export function ThemePicker() {
 
   return (
     <div className="segmented theme-picker" role="group" aria-label="โหมดแสดงผล">
-      {(Object.keys(LABELS) as Mode[]).map((m) => (
-        <button key={m} type="button" aria-pressed={mode === m} onClick={() => choose(m)}>
-          {LABELS[m]}
-        </button>
-      ))}
+      {(Object.keys(LABELS) as Mode[]).map((m) => {
+        const Icon = ICONS[m];
+        return (
+          <button key={m} type="button" aria-pressed={mode === m} onClick={() => choose(m)}>
+            <Icon size={18} />
+            <span>{LABELS[m]}</span>
+          </button>
+        );
+      })}
     </div>
   );
 }
