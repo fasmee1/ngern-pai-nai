@@ -26,6 +26,10 @@ import {
   ChevronRight,
   X,
   ArrowLeftRight,
+  Sparkles,
+  SendHorizontal,
+  Volume2,
+  VolumeX,
   type LucideProps,
 } from "lucide-react";
 
@@ -55,6 +59,10 @@ export const IconTrash = wrap(Trash2);
 export const IconChevron = wrap(ChevronRight);
 export const IconTransfer = wrap(ArrowLeftRight);
 export const IconClose = wrap(X);
+export const IconSparkle = wrap(Sparkles);
+export const IconSend = wrap(SendHorizontal);
+export const IconVolume = wrap(Volume2);
+export const IconVolumeOff = wrap(VolumeX);
 export const IconBanknote = wrap(Banknote);
 
 // Category icon chosen by name. Unknown (custom) categories get a neutral tag.

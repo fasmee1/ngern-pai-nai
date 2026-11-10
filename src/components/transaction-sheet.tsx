@@ -3,11 +3,12 @@ import { IconClose } from "./icons";
 import { AccountPicker } from "./account-picker";
 
 import { useActionState, useEffect, useState } from "react";
-import { addCategory, saveTransaction } from "@/app/actions";
+import { addCategory, parseEntryText, saveTransaction } from "@/app/actions";
 import type { Account } from "@/lib/load";
 import type { Transaction } from "@/lib/summary";
 import { todayInBangkok } from "@/lib/dates";
 import { MAX_NOTE } from "@/lib/input";
+import { MAX_ENTRY_CHARS } from "@/lib/quick-entry";
 
 type CategoryRow = { id: string; name: string; type: "income" | "expense"; color: string };
 
@@ -57,6 +58,31 @@ export function TransactionSheet({
     setAdding(false);
     onCategoryAdded();
   }
+
+  // "Type a sentence" helper: the AI fills the form, the person checks it and presses save.
+  const [sentence, setSentence] = useState("");
+  const [aiPending, setAiPending] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  async function fillFromSentence() {
+    setAiError(null);
+    setAiPending(true);
+    const result = await parseEntryText(sentence);
+    setAiPending(false);
+    if (!result.ok) {
+      setAiError(result.error);
+      return;
+    }
+    const e = result.entry;
+    setType(e.type);
+    setAmount(e.amount);
+    setCategoryId(e.categoryId ?? "");
+    setNote(e.note);
+    if (e.date) setDate(e.date);
+    setSentence("");
+    if (!e.categoryId) setAiError("เลือกหมวดเองอีกนิดนะ AI ยังเดาหมวดไม่ได้");
+  }
+
   const done = state?.ok === true;
   useEffect(() => {
     if (done) onSaved();
@@ -75,6 +101,32 @@ export function TransactionSheet({
           <input type="hidden" name="type" value={type} />
           <input type="hidden" name="categoryId" value={categoryId} />
           <input type="hidden" name="accountId" value={accountId} />
+
+          {editing ? null : (
+            <div className="field ai-quickadd">
+              <span>พิมพ์สั้น ๆ ให้ AI กรอกให้</span>
+              <div className="new-category">
+                <input
+                  value={sentence}
+                  onChange={(e) => setSentence(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      if (sentence.trim() && !aiPending) void fillFromSentence();
+                    }
+                  }}
+                  maxLength={MAX_ENTRY_CHARS}
+                  placeholder="เช่น กินข้าว 60 หรือ เมื่อวานค่าแท็กซี่ 120"
+                  aria-label="พิมพ์รายการให้ AI กรอกให้"
+                  autoComplete="off"
+                />
+                <button type="button" className="primary" disabled={aiPending || !sentence.trim()} onClick={() => void fillFromSentence()}>
+                  {aiPending ? "กำลังอ่าน..." : "กรอกให้"}
+                </button>
+              </div>
+              {aiError ? <p className="form-error" role="alert">{aiError}</p> : null}
+            </div>
+          )}
 
           <div className="segmented" role="group" aria-label="ประเภท">
             <button type="button" aria-pressed={type === "expense"} onClick={() => { setType("expense"); setCategoryId(""); }}>รายจ่าย</button>

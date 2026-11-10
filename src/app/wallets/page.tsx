@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { IconBack } from "@/components/icons";
 import { WalletsClient } from "@/components/wallets-client";
 import { currentUser, loadWallets } from "@/lib/load";
+import { AiChat } from "@/components/ai-chat";
 
 export default function WalletsPage() {
   return (
@@ -29,6 +30,7 @@ async function WalletsContent() {
       <main className="page">
         <WalletsClient data={data} />
       </main>
+      <AiChat />
     </div>
   );
 }

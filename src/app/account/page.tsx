@@ -7,6 +7,7 @@ import { DeleteAccount } from "@/components/delete-account";
 import { ThemePicker } from "@/components/theme-picker";
 import { ProfileCard } from "@/components/profile-card";
 import { currentUser, loadProfile, googleName, googlePhoto } from "@/lib/load";
+import { AiChat } from "@/components/ai-chat";
 
 export default function AccountPage() {
   return (
@@ -68,6 +69,7 @@ async function AccountContent() {
           <DeleteAccount />
         </section>
       </main>
+      <AiChat />
     </div>
   );
 }

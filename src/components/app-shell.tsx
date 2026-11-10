@@ -8,6 +8,7 @@ import Link from "next/link";
 import { IconAccount, IconAdd, IconTransfer, IconBudget, IconList, IconSummary } from "./icons";
 import { Avatar } from "./avatar";
 import { LogoLockup } from "./logo";
+import { AiChat } from "./ai-chat";
 
 export type Tab = "summary" | "list" | "budget";
 
@@ -59,6 +60,8 @@ export function AppShell({
       </header>
 
       <main className="app-main">{children}</main>
+
+      <AiChat />
 
       <nav className="tabbar" aria-label="เมนูหลัก">
         {LEFT_TABS.map(({ id, label, Icon }) => (

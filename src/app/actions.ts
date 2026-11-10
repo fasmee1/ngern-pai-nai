@@ -6,6 +6,9 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseAvatarColor, parseBaht, parseCategoryName, parseDisplayName, parseId, parseMonth, parseTransactionForm, parseTransferForm } from "@/lib/input";
 import { todayInBangkok } from "@/lib/dates";
 import { BANKS, parseBankCodes } from "@/lib/banks";
+import { MAX_SPEAK_CHARS } from "@/lib/ai-prompt";
+import { askGeminiJson, speakGemini } from "@/lib/gemini";
+import { buildEntryPrompt, MAX_ENTRY_CHARS, parseEntry, type QuickEntry } from "@/lib/quick-entry";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -223,3 +226,42 @@ export async function deleteMyAccount(confirmText: string): Promise<Result> {
   redirect("/");
 }
 
+
+// Reads a short reply aloud with Gemini's voice. Only signed-in people can use it, and only short text is accepted.
+export async function speakAnswer(text: string): Promise<{ ok: true; mime: string; base64: string } | { ok: false; error: string }> {
+  const supabase = await signedInClient();
+  if (!supabase) return { ok: false, error: "ยังไม่ได้เข้าระบบ ลองเข้าใหม่นะ" };
+  const clean = typeof text === "string" ? text.trim().slice(0, MAX_SPEAK_CHARS) : "";
+  if (!clean) return { ok: false, error: "ไม่มีข้อความให้อ่าน" };
+  return speakGemini(clean);
+}
+
+const ENTRY_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    type: { type: "STRING", enum: ["expense", "income"] },
+    amount: { type: "NUMBER" },
+    categoryName: { type: "STRING", nullable: true },
+    note: { type: "STRING" },
+    date: { type: "STRING", nullable: true },
+  },
+  required: ["type", "amount", "categoryName", "note", "date"],
+};
+
+// Turns a typed sentence into suggested form fields. Nothing is saved here; the person checks and saves.
+export async function parseEntryText(text: string): Promise<{ ok: true; entry: QuickEntry } | { ok: false; error: string }> {
+  const supabase = await signedInClient();
+  if (!supabase) return { ok: false, error: "ยังไม่ได้เข้าระบบ ลองเข้าใหม่นะ" };
+  const clean = typeof text === "string" ? text.trim().slice(0, MAX_ENTRY_CHARS) : "";
+  if (!clean) return { ok: false, error: "พิมพ์รายการก่อนนะ เช่น กินข้าว 60" };
+
+  const { data } = await supabase.from("categories").select("id, name, type").order("created_at");
+  const categories = (data ?? []).map((c) => ({ id: c.id, name: c.name, type: c.type as "income" | "expense" }));
+  const today = todayInBangkok();
+
+  const raw = await askGeminiJson(buildEntryPrompt(today, categories), clean, ENTRY_SCHEMA);
+  if (!raw) return { ok: false, error: "AI ตอบไม่ได้ตอนนี้ ลองอีกครั้งหรือกรอกเองนะ" };
+  const entry = parseEntry(raw, categories, today);
+  if (!entry) return { ok: false, error: "AI อ่านจำนวนเงินไม่ออก ลองพิมพ์ใหม่ เช่น กินข้าว 60" };
+  return { ok: true, entry };
+}

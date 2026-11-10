@@ -4,6 +4,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CompareClient } from "@/components/compare-client";
 import { currentUser, loadCompareData } from "@/lib/load";
+import { AiChat } from "@/components/ai-chat";
 
 export default function ComparePage() {
   return (
@@ -29,6 +30,7 @@ async function CompareContent() {
       <main className="page">
         <CompareClient data={data} />
       </main>
+      <AiChat />
     </div>
   );
 }
