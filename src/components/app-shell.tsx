@@ -5,7 +5,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { IconAccount, IconAdd, IconTransfer, IconBudget, IconList, IconSummary, IconTarget } from "./icons";
+import { IconAccount, IconAdd, IconBudget, IconList, IconSummary } from "./icons";
 import { Avatar } from "./avatar";
 import { LogoLockup } from "./logo";
 import { AiChat } from "./ai-chat";
@@ -58,13 +58,7 @@ export function AppShell({
         </div>
       </header>
 
-      <main className="app-main">
-        <nav className="shortcuts" aria-label="ทางลัด">
-          <Link href="/plans" className="shortcut"><IconTarget size={18} />เป้าหมายและบิล</Link>
-          <Link href="/wallets" className="shortcut"><IconTransfer size={18} />บัญชีและย้ายเงิน</Link>
-        </nav>
-        {children}
-      </main>
+      <main className="app-main">{children}</main>
 
       <AiChat />
 

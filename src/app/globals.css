@@ -2037,3 +2037,31 @@ html[data-theme="dark"] .acct-chip[aria-checked="true"] { background: #25244a; }
 ::selection { background: rgb(145 141 246 / 0.28); color: inherit; }
 :where(a, button, input, select, textarea, [role="radio"]):focus-visible { outline: 2px solid #918df6; outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .shortcut { transition: none; } .shortcut:active { transform: none; } }
+
+/* Overview card: headline, ring and the three totals in the first screen */
+.appbar { gap: 12px; margin-bottom: 16px; }
+.app-main { gap: 16px; }
+.overview { display: flex; flex-direction: column; gap: 16px; padding: 18px 16px 16px; }
+.ov-headline { margin: 0; font-family: var(--font-heading); font-size: 18px; font-weight: 600; line-height: 1.4; letter-spacing: -0.01em; text-wrap: balance; }
+.ov-body { display: grid; grid-template-columns: 172px minmax(0, 1fr); align-items: center; gap: 16px; }
+.overview .donut { width: 172px; margin: 0; container-type: inline-size; }
+.overview .donut svg { filter: drop-shadow(0 8px 12px rgb(97 92 214 / 0.2)); }
+.overview .donut-label { font-size: 11px; }
+.overview .donut-unit { font-size: 11px; }
+.overview .donut-value { font-size: 11cqw; line-height: 1.2; white-space: nowrap; }
+.overview .donut-value[data-long="true"] { font-size: 9cqw; }
+.ov-totals { display: flex; flex-direction: column; margin: 0; }
+.ov-totals > div { padding: 10px 0; border-top: 1px solid var(--line); min-width: 0; }
+.ov-totals > div:first-child { padding-top: 0; border-top: 0; }
+.ov-totals > div:last-child { padding-bottom: 0; }
+.ov-totals dt { margin: 0; font-size: 12px; letter-spacing: 0.02em; color: var(--ink-soft); }
+.ov-totals dd { margin: 2px 0 0; font-family: var(--font-heading); font-size: 17px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.ov-totals dd.income { color: #1c8f3e; }
+.ov-balance dd { font-size: 20px; }
+.overview .legend { justify-content: flex-start; margin: 0; gap: 6px; }
+.overview .legend button { min-height: 36px; padding: 0 12px; font-size: 13px; }
+html[data-theme="dark"] .ov-totals dd.income { color: #5fd47e; }
+@media (max-width: 359px) {
+  .ov-body { grid-template-columns: 1fr; justify-items: center; }
+  .ov-totals { width: 100%; }
+}

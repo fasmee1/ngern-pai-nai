@@ -5,9 +5,10 @@
 // FIRST VIEWPORT: headline, glowing donut, then the three totals.
 
 import { useState } from "react";
+import Link from "next/link";
 import { formatBaht, type Category, type Comparison, type Slice, type Summary, type Transaction } from "@/lib/summary";
 import { thaiDateLabel } from "@/lib/dates";
-import { CategoryIcon, IconChevron } from "./icons";
+import { CategoryIcon, IconChevron, IconTarget, IconTransfer } from "./icons";
 import { CompareSummaryCard } from "./compare-view";
 
 const RADIUS = 78;
@@ -53,7 +54,7 @@ export function Donut({
       </svg>
       <div className="donut-center" aria-live="polite">
         <span className="donut-label">{selected ? selected.name : "ใช้ไปทั้งหมด"}</span>
-        <span className="donut-value">{formatBaht(selected ? selected.spentSatang : total)}</span>
+        <span className="donut-value" data-long={formatBaht(selected ? selected.spentSatang : total).length > 9}>{formatBaht(selected ? selected.spentSatang : total)}</span>
         <span className="donut-unit">{selected ? `บาท · ${Math.round(selected.share * 100)}%` : "บาท"}</span>
       </div>
     </div>
@@ -115,10 +116,25 @@ export function SummaryView({
 
   return (
     <>
-      <section className="hero" aria-labelledby="headline">
-        <p className="eyebrow-note">รายจ่ายเดือนนี้</p>
-        <h2 id="headline" className="headline">{summary.headline}</h2>
-        <Donut slices={summary.slices} total={summary.expenseSatang} selected={selected} onSelect={toggle} />
+      <section className="card overview" aria-labelledby="headline">
+        <h2 id="headline" className="ov-headline">{summary.headline}</h2>
+        <div className="ov-body">
+          <Donut slices={summary.slices} total={summary.expenseSatang} selected={selected} onSelect={toggle} />
+          <dl className="ov-totals">
+            <div>
+              <dt>รายรับ</dt>
+              <dd className="income">{formatBaht(summary.incomeSatang)}</dd>
+            </div>
+            <div>
+              <dt>รายจ่าย</dt>
+              <dd>{formatBaht(summary.expenseSatang)}</dd>
+            </div>
+            <div className="ov-balance">
+              <dt>คงเหลือ</dt>
+              <dd>{formatBaht(summary.balanceSatang)}</dd>
+            </div>
+          </dl>
+        </div>
         <ul className="legend">
           {summary.slices.map((slice) => (
             <li key={slice.id}>
@@ -131,20 +147,10 @@ export function SummaryView({
         </ul>
       </section>
 
-      <dl className="totals">
-        <div className="stat">
-          <dt>รายรับ</dt>
-          <dd className="income">{formatBaht(summary.incomeSatang)}</dd>
-        </div>
-        <div className="stat">
-          <dt>รายจ่าย</dt>
-          <dd>{formatBaht(summary.expenseSatang)}</dd>
-        </div>
-        <div className="stat">
-          <dt>คงเหลือ</dt>
-          <dd>{formatBaht(summary.balanceSatang)}</dd>
-        </div>
-      </dl>
+      <nav className="shortcuts" aria-label="ทางลัด">
+        <Link href="/plans" className="shortcut"><IconTarget size={18} />เป้าหมายและบิล</Link>
+        <Link href="/wallets" className="shortcut"><IconTransfer size={18} />บัญชีและย้ายเงิน</Link>
+      </nav>
 
       <CompareSummaryCard comparison={comparison} beforeLabel={beforeLabel} />
 
