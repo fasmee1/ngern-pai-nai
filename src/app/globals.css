@@ -2008,3 +2008,10 @@ html[data-theme="dark"] .acct-chip[aria-checked="true"] { background: #25244a; }
 .plan-deposit { display: flex; gap: 8px; }
 .plan-deposit input { flex: 1; min-width: 0; min-height: 40px; border-radius: 12px; border: 1px solid rgba(120, 120, 140, 0.3); padding: 0 12px; background: transparent; color: inherit; }
 .primary.small { min-height: 36px; padding: 0 14px; font-size: 14px; flex: none; }
+
+/* Shortcut pills under the header */
+.shortcuts { display: flex; gap: 8px; margin-bottom: 12px; }
+.shortcut { display: inline-flex; align-items: center; justify-content: center; gap: 8px; flex: 1; min-height: 44px; padding: 0 12px; border-radius: 999px; font-size: 14px; font-weight: 600; text-decoration: none; color: inherit; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(120, 120, 140, 0.2); backdrop-filter: blur(12px); }
+.shortcut:hover { background: rgba(255, 255, 255, 0.9); }
+html[data-theme="dark"] .shortcut { background: rgba(255, 255, 255, 0.08); }
+html[data-theme="dark"] .shortcut:hover { background: rgba(255, 255, 255, 0.14); }

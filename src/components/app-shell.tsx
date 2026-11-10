@@ -47,8 +47,6 @@ export function AppShell({
         <div className="appbar-brand">
           <LogoLockup size={34} id="logo-app" />
           <div className="appbar-actions">
-            <Link href="/plans" className="icon-btn" aria-label="เป้าหมายออมเงินและบิลประจำเดือน"><IconTarget size={20} /></Link>
-            <Link href="/wallets" className="icon-btn" aria-label="บัญชีเงินและย้ายเงิน"><IconTransfer size={20} /></Link>
             <Link href={accountHref} className="avatar" aria-label="โปรไฟล์และบัญชีของฉัน">
               {profile ? <Avatar name={profile.name} color={profile.color} size={44} photo={profile.photo ?? null} /> : <IconAccount size={20} />}
             </Link>
@@ -60,7 +58,13 @@ export function AppShell({
         </div>
       </header>
 
-      <main className="app-main">{children}</main>
+      <main className="app-main">
+        <nav className="shortcuts" aria-label="ทางลัด">
+          <Link href="/plans" className="shortcut"><IconTarget size={18} />เป้าหมายและบิล</Link>
+          <Link href="/wallets" className="shortcut"><IconTransfer size={18} />บัญชีและย้ายเงิน</Link>
+        </nav>
+        {children}
+      </main>
 
       <AiChat />
 
