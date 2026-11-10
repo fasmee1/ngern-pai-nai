@@ -97,6 +97,7 @@ export function SummaryView({
   const selected = summary.slices.find((slice) => slice.id === selectedId) ?? null;
   const toggle = (id: string) => setSelectedId((current) => (current === id ? null : id));
   const empty = transactions.length === 0;
+  const usedPercent = summary.incomeSatang > 0 ? Math.round((summary.expenseSatang / summary.incomeSatang) * 100) : 0;
 
   if (empty) {
     return (
@@ -116,35 +117,48 @@ export function SummaryView({
 
   return (
     <>
-      <section className="card overview" aria-labelledby="headline">
+      <section className="balance-card" aria-labelledby="balance-title">
+        <p id="balance-title" className="bc-label">คงเหลือเดือนนี้</p>
+        <p className="bc-amount" data-long={formatBaht(summary.balanceSatang).length > 10}>
+          <span>{formatBaht(summary.balanceSatang)}</span>
+          <small>บาท</small>
+        </p>
+        {summary.incomeSatang > 0 ? (
+          <>
+            <div className="bc-meter" role="img" aria-label={`ใช้ไป ${usedPercent}% ของรายรับ`}>
+              <span style={{ width: `${Math.min(100, usedPercent)}%` }} />
+            </div>
+            <p className="bc-note">{usedPercent > 100 ? "ใช้เกินรายรับเดือนนี้" : `ใช้ไป ${usedPercent}% ของรายรับ`}</p>
+          </>
+        ) : null}
+        <dl className="bc-row">
+          <div>
+            <dt>รายรับ</dt>
+            <dd>{formatBaht(summary.incomeSatang)}</dd>
+          </div>
+          <div>
+            <dt>รายจ่าย</dt>
+            <dd>{formatBaht(summary.expenseSatang)}</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section className="card spend" aria-labelledby="headline">
         <h2 id="headline" className="ov-headline">{summary.headline}</h2>
-        <div className="ov-body">
+        <div className="spend-body">
           <Donut slices={summary.slices} total={summary.expenseSatang} selected={selected} onSelect={toggle} />
-          <dl className="ov-totals">
-            <div>
-              <dt>รายรับ</dt>
-              <dd className="income">{formatBaht(summary.incomeSatang)}</dd>
-            </div>
-            <div>
-              <dt>รายจ่าย</dt>
-              <dd>{formatBaht(summary.expenseSatang)}</dd>
-            </div>
-            <div className="ov-balance">
-              <dt>คงเหลือ</dt>
-              <dd>{formatBaht(summary.balanceSatang)}</dd>
-            </div>
-          </dl>
+          <ul className="cat-list">
+            {summary.slices.map((slice) => (
+              <li key={slice.id}>
+                <button type="button" aria-pressed={selectedId === slice.id} onClick={() => toggle(slice.id)}>
+                  <span className="dot" style={{ background: slice.color }} />
+                  <span className="cat-name">{slice.name}</span>
+                  <span className="cat-amt">{formatBaht(slice.spentSatang)}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
-        <ul className="legend">
-          {summary.slices.map((slice) => (
-            <li key={slice.id}>
-              <button type="button" aria-pressed={selectedId === slice.id} onClick={() => toggle(slice.id)}>
-                <span className="dot" style={{ background: slice.color }} />
-                {slice.name}
-              </button>
-            </li>
-          ))}
-        </ul>
       </section>
 
       <nav className="shortcuts" aria-label="ทางลัด">
