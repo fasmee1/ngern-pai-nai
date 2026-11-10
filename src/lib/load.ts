@@ -57,6 +57,18 @@ export async function loadMonth(): Promise<MonthData> {
   };
 }
 
+export type SignedInUser = { id: string; email: string | null; user_metadata: Record<string, unknown> };
+
+// Who is signed in right now, or null. Reads the signed login token and checks it locally,
+// so most requests need no extra trip to Supabase.
+export async function currentUser(): Promise<SignedInUser | null> {
+  const supabase = await createSupabaseServerClient();
+  const { data } = await supabase.auth.getClaims();
+  const claims = data?.claims;
+  if (!claims?.sub) return null;
+  return { id: claims.sub, email: claims.email ?? null, user_metadata: claims.user_metadata ?? {} };
+}
+
 export type Profile = { name: string; color: string; photo: string | null };
 
 // Profile for the signed-in person. Falls back to the Google name, then the email.

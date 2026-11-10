@@ -1,12 +1,11 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { SignOutButton } from "@/components/sign-out-button";
 import { DeleteAccount } from "@/components/delete-account";
 import { ThemePicker } from "@/components/theme-picker";
 import { ProfileCard } from "@/components/profile-card";
-import { loadProfile, googleName, googlePhoto } from "@/lib/load";
+import { currentUser, loadProfile, googleName, googlePhoto } from "@/lib/load";
 
 export default function AccountPage() {
   return (
@@ -17,11 +16,10 @@ export default function AccountPage() {
 }
 
 async function AccountContent() {
-  const supabase = await createSupabaseServerClient();
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) redirect("/");
+  const user = await currentUser();
+  if (!user) redirect("/");
 
-  const profile = await loadProfile(googleName(data.user), googlePhoto(data.user));
+  const profile = await loadProfile(googleName(user), googlePhoto(user));
 
   return (
     <div className="screen">
@@ -34,7 +32,7 @@ async function AccountContent() {
       <main className="page">
         <section className="glass page-card">
           <h2>โปรไฟล์</h2>
-          <ProfileCard initialName={profile.name} initialColor={profile.color} photo={profile.photo} email={data.user.email ?? ""} />
+          <ProfileCard initialName={profile.name} initialColor={profile.color} photo={profile.photo} email={user.email ?? ""} />
         </section>
 
         <section className="glass page-card">

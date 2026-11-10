@@ -4,6 +4,7 @@
 // Mobile-first, like a native app. The center button adds a transaction.
 
 import type { ReactNode } from "react";
+import Link from "next/link";
 import { IconAccount, IconAdd, IconBudget, IconList, IconSummary } from "./icons";
 import { Avatar } from "./avatar";
 import { LogoLockup } from "./logo";
@@ -44,9 +45,9 @@ export function AppShell({
       <header className="appbar">
         <div className="appbar-brand">
           <LogoLockup size={34} id="logo-app" />
-          <a href={accountHref} className="avatar" aria-label="โปรไฟล์และบัญชีของฉัน">
+          <Link href={accountHref} className="avatar" aria-label="โปรไฟล์และบัญชีของฉัน">
             {profile ? <Avatar name={profile.name} color={profile.color} size={44} photo={profile.photo ?? null} /> : <IconAccount size={20} />}
-          </a>
+          </Link>
         </div>
         <div className="appbar-text">
           <p className="appbar-sub">{subtitle}</p>
@@ -66,10 +67,10 @@ export function AppShell({
         {RIGHT_TABS.map(({ id, label, Icon }) => (
           <TabButton key={id} id={id} label={label} Icon={Icon} active={tab === id} onTab={onTab} />
         ))}
-        <a href={accountHref} className="tab">
+        <Link href={accountHref} className="tab">
           <IconAccount size={22} />
           <span>บัญชี</span>
-        </a>
+        </Link>
       </nav>
     </div>
   );
