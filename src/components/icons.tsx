@@ -24,6 +24,8 @@ import {
   Briefcase,
   Trash2,
   ChevronRight,
+  X,
+  ArrowLeftRight,
   type LucideProps,
 } from "lucide-react";
 
@@ -51,6 +53,8 @@ export const IconSystem = wrap(Monitor);
 export const IconUndo = wrap(Undo2);
 export const IconTrash = wrap(Trash2);
 export const IconChevron = wrap(ChevronRight);
+export const IconTransfer = wrap(ArrowLeftRight);
+export const IconClose = wrap(X);
 export const IconBanknote = wrap(Banknote);
 
 // Category icon chosen by name. Unknown (custom) categories get a neutral tag.

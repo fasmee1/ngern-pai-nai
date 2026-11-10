@@ -3,8 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { parseAvatarColor, parseBaht, parseCategoryName, parseDisplayName, parseId, parseMonth, parseTransactionForm } from "@/lib/input";
+import { parseAvatarColor, parseBaht, parseCategoryName, parseDisplayName, parseId, parseMonth, parseTransactionForm, parseTransferForm } from "@/lib/input";
 import { todayInBangkok } from "@/lib/dates";
+import { BANKS, parseBankCodes } from "@/lib/banks";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -47,6 +48,66 @@ export async function saveTransaction(_prev: Result | null, form: FormData): Pro
 
   if (error) return SAVE_FAILED;
   revalidatePath("/");
+  return { ok: true };
+}
+
+// Adds the chosen banks as accounts (banks already added are skipped) and marks setup as done.
+// An empty list is fine: it means "skip for now".
+export async function saveBanks(codes: string[]): Promise<Result> {
+  const supabase = await signedInClient();
+  if (!supabase) return NOT_SIGNED_IN;
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) return NOT_SIGNED_IN;
+
+  const wanted = parseBankCodes(codes);
+  const { data: existing, error: readError } = await supabase.from("accounts").select("bank_code");
+  if (readError) return SAVE_FAILED;
+  const have = new Set((existing ?? []).map((a) => a.bank_code));
+
+  const rows = wanted
+    .filter((code) => !have.has(code))
+    .map((code) => ({ name: BANKS.find((b) => b.code === code)!.name, bank_code: code }));
+  if (rows.length > 0) {
+    const { error } = await supabase.from("accounts").insert(rows);
+    if (error) return SAVE_FAILED;
+  }
+
+  const { error: flagError } = await supabase.from("profiles").update({ accounts_setup: true }).eq("id", auth.user.id);
+  if (flagError) return SAVE_FAILED;
+
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+// Moves money between two of the person's own accounts. Totals for the month do not change.
+export async function saveTransfer(_prev: Result | null, form: FormData): Promise<Result> {
+  const supabase = await signedInClient();
+  if (!supabase) return NOT_SIGNED_IN;
+
+  const parsed = parseTransferForm(form, todayInBangkok());
+  if (!parsed.ok) return parsed;
+
+  const { error } = await supabase.from("transfers").insert({
+    from_account_id: parsed.value.fromAccountId,
+    to_account_id: parsed.value.toAccountId,
+    amount_satang: parsed.value.amountSatang,
+    occurred_on: parsed.value.occurredOn,
+    note: parsed.value.note,
+  });
+  if (error) return SAVE_FAILED;
+  revalidatePath("/wallets");
+  return { ok: true };
+}
+
+export async function deleteTransfer(id: string): Promise<Result> {
+  const supabase = await signedInClient();
+  if (!supabase) return NOT_SIGNED_IN;
+  const safeId = parseId(id);
+  if (!safeId) return SAVE_FAILED;
+
+  const { error } = await supabase.from("transfers").update({ deleted_at: new Date().toISOString() }).eq("id", safeId);
+  if (error) return SAVE_FAILED;
+  revalidatePath("/wallets");
   return { ok: true };
 }
 

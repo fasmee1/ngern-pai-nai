@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildSummary, formatBaht, type Category, type Transaction } from "./summary.ts";
+import { buildComparison, buildSummary, formatBaht, type Category, type Transaction } from "./summary.ts";
 
 const categories: Category[] = [
   { id: "food", name: "ค่าอาหาร", color: "#918df6", budgetSatang: 10_000 },
@@ -59,4 +59,18 @@ test("handles a month with no spending", () => {
 test("formats baht for display", () => {
   assert.equal(formatBaht(1_240_000), "12,400");
   assert.equal(formatBaht(1_250), "12.50");
+});
+
+test("compares this month with last month per category", () => {
+  const result = buildComparison(categories, { food: 30_000, travel: 5_000 }, { food: 20_000, travel: 10_000 });
+  assert.equal(result.diffSatang, 5_000);
+  assert.equal(result.percent, 17);
+  assert.equal(result.rows[0].id, "food");
+  assert.match(result.headline, /มากกว่า/);
+});
+
+test("says there is nothing to compare when last month is empty", () => {
+  const result = buildComparison(categories, { food: 100 }, {});
+  assert.equal(result.hasBefore, false);
+  assert.equal(result.percent, null);
 });

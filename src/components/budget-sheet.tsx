@@ -1,4 +1,5 @@
 "use client";
+import { IconClose } from "./icons";
 
 import { useState, useTransition } from "react";
 import { saveBudget } from "@/app/actions";
@@ -43,7 +44,7 @@ export function BudgetSheet({
       <div className="sheet glass" role="dialog" aria-modal="true" aria-labelledby="budget-title">
         <div className="sheet-head">
           <h2 id="budget-title">ตั้งงบเดือนนี้</h2>
-          <button type="button" className="link" onClick={onClose}>ปิด</button>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="ปิด"><IconClose size={20} /></button>
         </div>
         <p className="sheet-hint">เว้นว่างไว้ถ้าไม่อยากตั้งงบหมวดนั้น</p>
 

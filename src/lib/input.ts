@@ -59,6 +59,34 @@ export function parseTransactionForm(form: FormData, today: string): ParseResult
   return { ok: true, value: { type, amountSatang, categoryId, accountId, occurredOn, note } };
 }
 
+export type TransferInput = {
+  fromAccountId: string;
+  toAccountId: string;
+  amountSatang: number;
+  occurredOn: string;
+  note: string;
+};
+
+export function parseTransferForm(form: FormData, today: string): ParseResult<TransferInput> {
+  const fromAccountId = String(form.get("fromAccountId") ?? "");
+  if (!UUID.test(fromAccountId)) return { ok: false, error: "เลือกบัญชีต้นทางก่อนนะ" };
+
+  const toAccountId = String(form.get("toAccountId") ?? "");
+  if (!UUID.test(toAccountId)) return { ok: false, error: "เลือกบัญชีปลายทางก่อนนะ" };
+  if (fromAccountId === toAccountId) return { ok: false, error: "เลือกบัญชีต้นทางกับปลายทางคนละบัญชีนะ" };
+
+  const amountSatang = parseBaht(String(form.get("amount") ?? ""));
+  if (amountSatang === null) return { ok: false, error: "ใส่จำนวนเงินก่อนนะ เช่น 500" };
+
+  const occurredOn = String(form.get("occurredOn") ?? "");
+  if (!isIsoDate(occurredOn, today)) return { ok: false, error: "วันที่ไม่ถูกต้อง ลองเลือกใหม่นะ" };
+
+  const note = String(form.get("note") ?? "").trim();
+  if (note.length > MAX_NOTE) return { ok: false, error: `โน้ตยาวเกิน ${MAX_NOTE} ตัวอักษร` };
+
+  return { ok: true, value: { fromAccountId, toAccountId, amountSatang, occurredOn, note } };
+}
+
 export function parseId(value: FormDataEntryValue | null): string | null {
   const text = String(value ?? "");
   return UUID.test(text) ? text : null;

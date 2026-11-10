@@ -1,3 +1,4 @@
+import { IconBack } from "@/components/icons";
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -25,7 +26,7 @@ async function AccountContent() {
     <div className="screen">
       <div className="aurora" aria-hidden="true" />
       <header className="topbar">
-        <Link href="/" className="link strong">กลับ</Link>
+        <Link href="/" className="icon-btn" aria-label="กลับ"><IconBack size={20} /></Link>
         <span className="brand">บัญชีของฉัน</span>
       </header>
 
@@ -33,6 +34,12 @@ async function AccountContent() {
         <section className="glass page-card">
           <h2>โปรไฟล์</h2>
           <ProfileCard initialName={profile.name} initialColor={profile.color} photo={profile.photo} email={user.email ?? ""} />
+        </section>
+
+        <section className="glass page-card">
+          <h2>บัญชีธนาคาร</h2>
+          <p className="page-text">เลือกธนาคารที่ใช้ เพิ่มภายหลัง และย้ายเงินระหว่างบัญชี</p>
+          <Link href="/wallets" className="ghost wide icon-button">จัดการบัญชีธนาคาร</Link>
         </section>
 
         <section className="glass page-card">

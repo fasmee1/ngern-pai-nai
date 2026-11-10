@@ -1,4 +1,6 @@
 "use client";
+import { IconClose } from "./icons";
+import { AccountPicker } from "./account-picker";
 
 import { useActionState, useEffect, useState } from "react";
 import { addCategory, saveTransaction } from "@/app/actions";
@@ -65,7 +67,7 @@ export function TransactionSheet({
       <div className="sheet glass" role="dialog" aria-modal="true" aria-labelledby="sheet-title">
         <div className="sheet-head">
           <h2 id="sheet-title">{editing ? "แก้ไขรายการ" : "จดรายการ"}</h2>
-          <button type="button" className="link" onClick={onClose}>ปิด</button>
+          <button type="button" className="icon-btn" onClick={onClose} aria-label="ปิด"><IconClose size={20} /></button>
         </div>
 
         <form action={action} className="sheet-form">
@@ -114,14 +116,7 @@ export function TransactionSheet({
             ) : null}
           </div>
 
-          <label className="field">
-            <span>บัญชี</span>
-            <select value={accountId} onChange={(e) => setAccountId(e.target.value)}>
-              {accounts.map((a) => (
-                <option key={a.id} value={a.id}>{a.name}</option>
-              ))}
-            </select>
-          </label>
+          <AccountPicker label="บัญชี" accounts={accounts} value={accountId} onChange={setAccountId} />
 
           <label className="field">
             <span>วันที่</span>

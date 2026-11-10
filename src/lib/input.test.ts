@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { initialOf, isIsoDate, parseAvatarColor, parseBaht, parseCategoryName, parseDisplayName, parseTransactionForm } from "./input.ts";
+import { initialOf, isIsoDate, parseAvatarColor, parseBaht, parseCategoryName, parseDisplayName, parseTransactionForm, parseTransferForm } from "./input.ts";
 
 test("parses baht text into satang", () => {
   assert.equal(parseBaht("250"), 25_000);
@@ -62,4 +62,20 @@ test("checks profile fields", () => {
   assert.equal(initialOf("fasmee"), "F");
   assert.equal(initialOf("ฟัซมี"), "ฟ");
   assert.equal(initialOf("   "), "?");
+});
+
+test("checks a transfer between two accounts", () => {
+  const a = "11111111-1111-4111-8111-111111111111";
+  const b = "22222222-2222-4222-8222-222222222222";
+  const make = (from: string, to: string, amount: string) => {
+    const form = new FormData();
+    form.set("fromAccountId", from);
+    form.set("toAccountId", to);
+    form.set("amount", amount);
+    form.set("occurredOn", "2026-11-07");
+    return parseTransferForm(form, "2026-11-10");
+  };
+  assert.deepEqual(make(a, b, "500"), { ok: true, value: { fromAccountId: a, toAccountId: b, amountSatang: 50_000, occurredOn: "2026-11-07", note: "" } });
+  assert.equal(make(a, a, "500").ok, false);
+  assert.equal(make(a, b, "0").ok, false);
 });

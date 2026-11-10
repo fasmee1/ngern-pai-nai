@@ -1,5 +1,6 @@
 import { SignInScreen } from "./sign-in-screen";
 import { HomeClient } from "./home-client";
+import { BankSetup } from "./bank-setup";
 import { currentUser, googleName, googlePhoto, loadMonth, loadProfile } from "@/lib/load";
 import { ensureSetup } from "@/app/actions";
 import { thaiMonthLabel } from "@/lib/dates";
@@ -14,6 +15,10 @@ export async function AuthGate({ failed }: { failed: boolean }) {
 
   await ensureSetup();
   const [month, profile] = await Promise.all([loadMonth(), loadProfile(googleName(user), googlePhoto(user))]);
+
+  if (!profile.accountsSetup) {
+    return <BankSetup name={profile.name} />;
+  }
 
   return (
     <HomeClient

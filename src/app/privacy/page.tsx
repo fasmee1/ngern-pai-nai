@@ -1,3 +1,4 @@
+import { IconBack } from "@/components/icons";
 import Link from "next/link";
 
 export const metadata = {
@@ -9,7 +10,7 @@ export default function PrivacyPage() {
     <div className="screen">
       <div className="aurora" aria-hidden="true" />
       <header className="topbar">
-        <Link href="/" className="link strong">กลับ</Link>
+        <Link href="/" className="icon-btn" aria-label="กลับ"><IconBack size={20} /></Link>
         <span className="brand">ความเป็นส่วนตัว</span>
       </header>
 

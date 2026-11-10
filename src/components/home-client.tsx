@@ -6,9 +6,11 @@ import { AppShell, type Tab } from "./app-shell";
 import { SummaryView, TransactionList } from "./summary-screen";
 import { BudgetView } from "./budget-view";
 import { TransactionSheet } from "./transaction-sheet";
+import { IconUndo } from "./icons";
 import { BudgetSheet } from "./budget-sheet";
 import { deleteTransaction, restoreTransaction } from "@/app/actions";
-import { buildSummary, type Category, type Transaction } from "@/lib/summary";
+import { buildComparison, buildSummary, type Category, type Transaction } from "@/lib/summary";
+import { thaiMonthLabel } from "@/lib/dates";
 import type { Account, MonthData, Profile } from "@/lib/load";
 
 type Sheet = { kind: "none" } | { kind: "add" } | { kind: "edit"; tx: Transaction } | { kind: "budget" };
@@ -42,6 +44,12 @@ export function HomeClient({
   );
 
   const summary = useMemo(() => buildSummary(categories, data.transactions), [categories, data.transactions]);
+
+  const comparison = useMemo(() => {
+    const now: Record<string, number> = {};
+    for (const slice of summary.slices) now[slice.id] = slice.spentSatang;
+    return buildComparison(categories, now, data.previous.expenseByCategory);
+  }, [categories, summary.slices, data.previous]);
 
   // Every category, for showing any transaction (income included).
   const allCategories: Category[] = useMemo(
@@ -93,6 +101,8 @@ export function HomeClient({
         {tab === "summary" ? (
           <SummaryView
             summary={summary}
+            comparison={comparison}
+            beforeLabel={thaiMonthLabel(data.previous.month)}
             transactions={data.transactions}
             categories={allCategories}
             onEdit={(tx) => setSheet({ kind: "edit", tx })}
@@ -158,7 +168,8 @@ export function HomeClient({
       {undo ? (
         <div className="undo glass" role="status">
           <span>{undo.label}</span>
-          <button type="button" className="link strong" onClick={undoRemove}>
+          <button type="button" className="link strong more" onClick={undoRemove}>
+            <IconUndo size={16} />
             ย้อนกลับ
           </button>
         </div>

@@ -5,9 +5,10 @@
 // FIRST VIEWPORT: headline, glowing donut, then the three totals.
 
 import { useState } from "react";
-import { formatBaht, type Category, type Slice, type Summary, type Transaction } from "@/lib/summary";
+import { formatBaht, type Category, type Comparison, type Slice, type Summary, type Transaction } from "@/lib/summary";
 import { thaiDateLabel } from "@/lib/dates";
-import { CategoryIcon } from "./icons";
+import { CategoryIcon, IconChevron } from "./icons";
+import { CompareSummaryCard } from "./compare-view";
 
 const RADIUS = 78;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -74,6 +75,8 @@ export function CategoryBadge({ category }: { category?: Category }) {
 
 export function SummaryView({
   summary,
+  comparison,
+  beforeLabel,
   transactions,
   categories,
   onEdit,
@@ -81,6 +84,8 @@ export function SummaryView({
   onSeeAll,
 }: {
   summary: Summary;
+  comparison: Comparison;
+  beforeLabel: string;
   transactions: Transaction[];
   categories: Category[];
   onEdit: (tx: Transaction) => void;
@@ -141,6 +146,8 @@ export function SummaryView({
         </div>
       </dl>
 
+      <CompareSummaryCard comparison={comparison} beforeLabel={beforeLabel} />
+
       {summary.overBudget.map((item) => (
         <p className="notice" key={item.name}>
           <span className="dot" style={{ background: "#ff3e00" }} />
@@ -151,7 +158,7 @@ export function SummaryView({
       <section className="card" aria-labelledby="recent-title">
         <div className="card-head">
           <h2 id="recent-title">ล่าสุด</h2>
-          <button type="button" className="link" onClick={onSeeAll}>ดูทั้งหมด</button>
+          <button type="button" className="link more" onClick={onSeeAll}>ดูทั้งหมด<IconChevron size={16} /></button>
         </div>
         <TransactionList transactions={transactions.slice(0, 5)} categories={categories} onEdit={onEdit} />
       </section>
