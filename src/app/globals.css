@@ -2108,6 +2108,23 @@ html[data-theme="dark"] .acct-chip[aria-checked="true"] { background: #25244a; }
   .sheet-layer, .ai-layer, .sheet, .ai-window, .sheet-layer.closing, .ai-layer.closing, .sheet-layer.closing .sheet, .ai-layer.closing .ai-window { animation-duration: 1ms; }
 }
 
-.skeleton { min-height: 120px; animation: skeleton-pulse 1.4s ease-in-out infinite alternate; }
+.skeleton { min-height: 120px; }
 @keyframes skeleton-pulse { from { opacity: 0.55; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }
+
+/* Skeleton loading: soft shimmer blocks that match the real layout */
+.sk { display: block; background: linear-gradient(100deg, rgba(120,120,160,0.10) 30%, rgba(120,120,160,0.20) 50%, rgba(120,120,160,0.10) 70%); background-size: 200% 100%; animation: sk-shimmer 1.4s linear infinite; border-radius: 14px; }
+@keyframes sk-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.sk-logo { width: 120px; height: 34px; }
+.sk-round { width: 44px; height: 44px; border-radius: 50%; }
+.sk-line { height: 14px; width: 40%; border-radius: 8px; }
+.sk-line.short { width: 28%; margin-bottom: 10px; }
+.sk-line.title { height: 26px; width: 55%; }
+.sk-card { height: 200px; border-radius: 24px; }
+.sk-card.tall { height: 230px; }
+.sk-card.short-card { height: 120px; }
+.sk-tabbar { justify-content: space-around; align-items: center; }
+.sk-tab { width: 34px; height: 34px; border-radius: 10px; }
+.sk-fab { width: 52px; height: 52px; border-radius: 50%; }
+.skeleton { background-image: linear-gradient(100deg, transparent 30%, rgba(255,255,255,0.35) 50%, transparent 70%); background-size: 200% 100%; animation: sk-shimmer 1.4s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .sk, .skeleton { animation: none; } }

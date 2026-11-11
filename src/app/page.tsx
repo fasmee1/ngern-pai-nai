@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { AppSkeleton } from "@/components/app-skeleton";
 import { AuthGate } from "@/components/auth-gate";
 
 export default function Home({
@@ -7,7 +8,7 @@ export default function Home({
   searchParams: Promise<{ error?: string }>;
 }) {
   return (
-    <Suspense fallback={<div className="screen" aria-busy="true" />}>
+    <Suspense fallback={<AppSkeleton />}>
       <HomeGate searchParams={searchParams} />
     </Suspense>
   );

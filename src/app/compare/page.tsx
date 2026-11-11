@@ -1,4 +1,5 @@
 import { IconBack } from "@/components/icons";
+import { PageSkeleton } from "@/components/page-skeleton";
 import { Suspense } from "react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -8,7 +9,7 @@ import { AiChat } from "@/components/ai-chat";
 
 export default function ComparePage() {
   return (
-    <Suspense fallback={<div className="screen" aria-busy="true" />}>
+    <Suspense fallback={<PageSkeleton title="เปรียบเทียบรายจ่าย" />}>
       <CompareContent />
     </Suspense>
   );
