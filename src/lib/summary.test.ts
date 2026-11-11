@@ -74,3 +74,23 @@ test("says there is nothing to compare when last month is empty", () => {
   assert.equal(result.hasBefore, false);
   assert.equal(result.percent, null);
 });
+
+import { dailyAllowance, frequentEntries } from "./summary.ts";
+
+test("daily allowance divides what is left and hides when nothing is left", () => {
+  assert.equal(dailyAllowance(204178, 20), 10208);
+  assert.equal(dailyAllowance(0, 20), null);
+  assert.equal(dailyAllowance(-5, 20), null);
+  assert.equal(dailyAllowance(1000, 0), null);
+});
+
+test("frequent entries need two repeats and keep the newest amount", () => {
+  const tx = (id: string, note: string, amount: number, type: "income" | "expense" = "expense") => ({
+    id, type, categoryId: "c1", accountId: "a1", amountSatang: amount, note, account: "", occurredOn: "2026-11-01",
+  });
+  const out = frequentEntries([tx("1", "กาแฟ", 5500), tx("2", "กาแฟ", 4500), tx("3", "ข้าว", 6000), tx("4", "เงินเดือน", 100, "income"), tx("5", "เงินเดือน", 100, "income")]);
+  assert.equal(out.length, 1);
+  assert.equal(out[0].note, "กาแฟ");
+  assert.equal(out[0].amountSatang, 5500);
+  assert.equal(out[0].count, 2);
+});

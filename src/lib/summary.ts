@@ -143,3 +143,26 @@ export function expenseByCategory(transactions: Transaction[]): Record<string, n
   }
   return out;
 }
+
+// What can be spent each day for the rest of the month (satang), or null when nothing is left.
+export function dailyAllowance(balanceSatang: number, daysLeft: number): number | null {
+  if (balanceSatang <= 0 || daysLeft <= 0) return null;
+  return Math.floor(balanceSatang / daysLeft);
+}
+
+export type FrequentEntry = { note: string; categoryId: string; accountId: string; amountSatang: number; count: number };
+
+// Expenses written down at least twice with the same note, category and account. Newest amount wins.
+// Transactions arrive newest first.
+export function frequentEntries(transactions: Transaction[], limit = 4): FrequentEntry[] {
+  const groups = new Map<string, FrequentEntry>();
+  for (const t of transactions) {
+    const note = t.note.trim();
+    if (t.type !== "expense" || !note || !t.accountId) continue;
+    const key = `${note}|${t.categoryId}|${t.accountId}`;
+    const found = groups.get(key);
+    if (found) found.count += 1;
+    else groups.set(key, { note, categoryId: t.categoryId, accountId: t.accountId, amountSatang: t.amountSatang, count: 1 });
+  }
+  return [...groups.values()].filter((g) => g.count >= 2).sort((a, b) => b.count - a.count).slice(0, limit);
+}

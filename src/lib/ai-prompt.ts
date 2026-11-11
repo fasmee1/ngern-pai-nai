@@ -16,6 +16,9 @@ export type AdvisorInput = {
   // Earlier months, newest first.
   history: { label: string; totalSatang: number; categories: { name: string; satang: number }[] }[];
   accounts: { name: string; balanceSatang: number }[];
+  // Savings goals and monthly bills, when the person has set any.
+  goals?: { name: string; savedSatang: number; targetSatang: number; deadline: string | null }[];
+  bills?: { name: string; amountSatang: number; dueDay: number; paidThisMonth: boolean }[];
 };
 
 export const ADVISOR_SYSTEM =
@@ -44,7 +47,7 @@ function daysLeftInMonth(today: string, monthEnd: string): number {
 }
 
 export function buildAdvisorContext(input: AdvisorInput): string {
-  const { today, monthEnd, monthLabel, incomeSatang, expenseSatang, categories, history, accounts } = input;
+  const { today, monthEnd, monthLabel, incomeSatang, expenseSatang, categories, history, accounts, goals = [], bills = [] } = input;
   const lines: string[] = [];
   const daysLeft = Math.max(1, daysLeftInMonth(today, monthEnd));
   const leftSatang = incomeSatang - expenseSatang;
@@ -113,6 +116,19 @@ export function buildAdvisorContext(input: AdvisorInput): string {
     const total = accounts.reduce((sum, a) => sum + a.balanceSatang, 0);
     lines.push(`เงินในบัญชีตอนนี้ รวม ${formatBaht(total)}:`);
     for (const a of accounts) lines.push(`- ${a.name} ${formatBaht(a.balanceSatang)}`);
+  }
+
+  if (goals.length > 0) {
+    lines.push("เป้าหมายออมเงิน:");
+    for (const g of goals) {
+      const percent = g.targetSatang > 0 ? Math.min(100, Math.floor((g.savedSatang / g.targetSatang) * 100)) : 0;
+      lines.push(`- ${g.name} เก็บได้ ${formatBaht(g.savedSatang)} จาก ${formatBaht(g.targetSatang)} (${percent}%)${g.deadline ? ` ครบกำหนด ${g.deadline}` : ""}`);
+    }
+  }
+  if (bills.length > 0) {
+    const unpaid = bills.filter((b) => !b.paidThisMonth);
+    lines.push(`บิลประจำเดือน ${bills.length} รายการ ที่ยังไม่ได้จดว่าจ่ายเดือนนี้ ${unpaid.length} รายการ รวม ${formatBaht(unpaid.reduce((s, b) => s + b.amountSatang, 0))} บาท:`);
+    for (const b of bills) lines.push(`- ${b.name} ${formatBaht(b.amountSatang)} ทุกวันที่ ${b.dueDay} ${b.paidThisMonth ? "(จดแล้วเดือนนี้)" : "(ยังไม่จด)"}`);
   }
 
   return lines.join("\n");

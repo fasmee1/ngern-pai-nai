@@ -52,3 +52,9 @@ export function thaiDateLabel(iso: string): string {
     new Date(Date.UTC(y, m - 1, d)),
   );
 }
+
+// Days left in the month, counting today.
+export function daysLeftInMonth(today: string): number {
+  const last = Number(monthEnd(monthStart(today)).slice(8, 10));
+  return last - Number(today.slice(8, 10)) + 1;
+}

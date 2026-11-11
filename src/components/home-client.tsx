@@ -8,14 +8,14 @@ import { BudgetView } from "./budget-view";
 import { TransactionSheet } from "./transaction-sheet";
 import { IconUndo } from "./icons";
 import { BudgetSheet } from "./budget-sheet";
-import { deleteTransaction, restoreTransaction } from "@/app/actions";
-import { buildComparison, buildSummary, type Category, type Transaction } from "@/lib/summary";
-import { thaiMonthLabel } from "@/lib/dates";
+import { deleteTransaction, restoreTransaction, saveTransaction } from "@/app/actions";
+import { buildComparison, buildSummary, formatBaht, frequentEntries, type Category, type FrequentEntry, type Transaction } from "@/lib/summary";
+import { daysLeftInMonth, todayInBangkok } from "@/lib/dates";
 import type { Account, MonthData, Profile } from "@/lib/load";
 
 type Sheet = { kind: "none" } | { kind: "add" } | { kind: "edit"; tx: Transaction } | { kind: "budget" };
 
-type Undo = { id: string; label: string } | null;
+type Undo = { id: string | null; label: string } | null;
 
 export function HomeClient({
   data,
@@ -57,6 +57,25 @@ export function HomeClient({
     [data],
   );
 
+  const quick = useMemo(() => frequentEntries(data.transactions), [data.transactions]);
+  const daysLeft = daysLeftInMonth(todayInBangkok());
+
+  // One tap writes down a repeated expense for today. A wrong tap can be fixed from the list.
+  function quickAdd(entry: FrequentEntry) {
+    const form = new FormData();
+    form.set("type", "expense");
+    form.set("amount", String(entry.amountSatang / 100));
+    form.set("categoryId", entry.categoryId);
+    form.set("accountId", entry.accountId);
+    form.set("occurredOn", todayInBangkok());
+    form.set("note", entry.note);
+    startTransition(async () => {
+      const result = await saveTransaction(null, form);
+      setUndo({ id: null, label: result.ok ? `จดแล้ว ${entry.note} ${formatBaht(entry.amountSatang)} บาท` : result.error });
+      if (result.ok) router.refresh();
+    });
+  }
+
   // Undo banner hides itself after a few seconds.
   useEffect(() => {
     if (!undo) return;
@@ -76,7 +95,7 @@ export function HomeClient({
   }
 
   function undoRemove() {
-    if (!undo) return;
+    if (!undo?.id) return;
     const id = undo.id;
     setUndo(null);
     startTransition(async () => {
@@ -102,12 +121,14 @@ export function HomeClient({
           <SummaryView
             summary={summary}
             comparison={comparison}
-            beforeLabel={thaiMonthLabel(data.previous.month)}
             transactions={data.transactions}
             categories={allCategories}
             onEdit={(tx) => setSheet({ kind: "edit", tx })}
             onAdd={() => setSheet({ kind: "add" })}
             onSeeAll={() => setTab("list")}
+            daysLeft={daysLeft}
+            quick={quick}
+            onQuick={quickAdd}
           />
         ) : null}
 
@@ -168,10 +189,12 @@ export function HomeClient({
       {undo ? (
         <div className="undo glass" role="status">
           <span>{undo.label}</span>
-          <button type="button" className="link strong more" onClick={undoRemove}>
-            <IconUndo size={16} />
-            ย้อนกลับ
-          </button>
+          {undo.id ? (
+            <button type="button" className="link strong more" onClick={undoRemove}>
+              <IconUndo size={16} />
+              ย้อนกลับ
+            </button>
+          ) : null}
         </div>
       ) : null}
     </>

@@ -6,10 +6,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { formatBaht, type Category, type Comparison, type Slice, type Summary, type Transaction } from "@/lib/summary";
+import { dailyAllowance, formatBaht, type Category, type Comparison, type FrequentEntry, type Slice, type Summary, type Transaction } from "@/lib/summary";
 import { thaiDateLabel } from "@/lib/dates";
 import { CategoryIcon, IconChevron, IconTarget, IconTransfer } from "./icons";
-import { CompareSummaryCard } from "./compare-view";
+import { CompareLine } from "./compare-view";
 
 const RADIUS = 78;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -77,26 +77,31 @@ export function CategoryBadge({ category }: { category?: Category }) {
 export function SummaryView({
   summary,
   comparison,
-  beforeLabel,
   transactions,
   categories,
   onEdit,
   onAdd,
   onSeeAll,
+  daysLeft,
+  quick,
+  onQuick,
 }: {
   summary: Summary;
   comparison: Comparison;
-  beforeLabel: string;
   transactions: Transaction[];
   categories: Category[];
   onEdit: (tx: Transaction) => void;
   onAdd: () => void;
   onSeeAll: () => void;
+  daysLeft: number;
+  quick: FrequentEntry[];
+  onQuick: (entry: FrequentEntry) => void;
 }) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = summary.slices.find((slice) => slice.id === selectedId) ?? null;
   const toggle = (id: string) => setSelectedId((current) => (current === id ? null : id));
   const empty = transactions.length === 0;
+  const perDay = dailyAllowance(summary.balanceSatang, daysLeft);
   const usedPercent = summary.incomeSatang > 0 ? Math.round((summary.expenseSatang / summary.incomeSatang) * 100) : 0;
 
   if (empty) {
@@ -123,6 +128,9 @@ export function SummaryView({
           <span>{formatBaht(summary.balanceSatang)}</span>
           <small>บาท</small>
         </p>
+        {perDay !== null ? (
+          <p className="bc-day">วันนี้ใช้ได้ประมาณ <strong>{formatBaht(perDay)}</strong> บาท · เหลืออีก {daysLeft} วัน</p>
+        ) : null}
         {summary.incomeSatang > 0 ? (
           <>
             <div className="bc-meter" role="img" aria-label={`ใช้ไป ${usedPercent}% ของรายรับ`}>
@@ -142,6 +150,20 @@ export function SummaryView({
           </div>
         </dl>
       </section>
+
+      {quick.length > 0 ? (
+        <section className="quick" aria-label="จดด่วน">
+          <p className="quick-title">จดด่วน แตะครั้งเดียวบันทึกเลย</p>
+          <div className="quick-row">
+            {quick.map((q) => (
+              <button key={`${q.note}${q.categoryId}${q.accountId}`} type="button" className="quick-chip" onClick={() => onQuick(q)}>
+                <span>{q.note}</span>
+                <strong>{formatBaht(q.amountSatang)}</strong>
+              </button>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="card spend" aria-labelledby="headline">
         <h2 id="headline" className="ov-headline">{summary.headline}</h2>
@@ -173,7 +195,7 @@ export function SummaryView({
         </Link>
       </nav>
 
-      <CompareSummaryCard comparison={comparison} beforeLabel={beforeLabel} />
+      <CompareLine comparison={comparison} />
 
       {summary.overBudget.map((item) => (
         <p className="notice" key={item.name}>

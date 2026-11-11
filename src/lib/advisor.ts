@@ -5,11 +5,11 @@ import "server-only";
 
 import { ADVISOR_SYSTEM, buildAdvisorContext } from "./ai-prompt";
 import { monthEnd, thaiMonthLabel, todayInBangkok } from "./dates";
-import { loadCompareData, loadMonth, loadWallets } from "./load";
+import { loadCompareData, loadMonth, loadPlans, loadWallets } from "./load";
 import { buildSummary } from "./summary";
 
 export async function buildAdvisorSystem(): Promise<string> {
-  const [data, compare, wallets] = await Promise.all([loadMonth(), loadCompareData(), loadWallets()]);
+  const [data, compare, wallets, plans] = await Promise.all([loadMonth(), loadCompareData(), loadWallets(), loadPlans()]);
 
   const expenseCategories = data.categories
     .filter((c) => c.type === "expense")
@@ -33,6 +33,8 @@ export async function buildAdvisorSystem(): Promise<string> {
       };
     }),
     accounts: wallets.accounts.map((a) => ({ name: a.name, balanceSatang: wallets.balances[a.id] ?? 0 })),
+    goals: plans.goals.map((g) => ({ name: g.name, savedSatang: g.savedSatang, targetSatang: g.targetSatang, deadline: g.deadline })),
+    bills: plans.bills.map((b) => ({ name: b.name, amountSatang: b.amountSatang, dueDay: b.dueDay, paidThisMonth: b.lastPaidMonth === data.month })),
   });
 
   return `${ADVISOR_SYSTEM}\n\n${context}`;

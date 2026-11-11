@@ -104,3 +104,17 @@ test("partialAnswer shows what has been written so far, in order", async () => {
   assert.equal(partialAnswer('{"te'), null);
   assert.equal(partialAnswer('{"text":"สวัสดี')?.text, "สวัสดี");
 });
+
+test("context lists savings goals and unpaid bills", () => {
+  const text = buildAdvisorContext({
+    ...base,
+    goals: [{ name: "เที่ยวญี่ปุ่น", savedSatang: 500000, targetSatang: 2000000, deadline: "2027-03-01" }],
+    bills: [
+      { name: "ค่าเน็ต", amountSatang: 59900, dueDay: 15, paidThisMonth: false },
+      { name: "ค่าห้อง", amountSatang: 400000, dueDay: 5, paidThisMonth: true },
+    ],
+  });
+  assert.ok(text.includes("เที่ยวญี่ปุ่น เก็บได้ 5,000 จาก 20,000 (25%)"));
+  assert.ok(text.includes("ที่ยังไม่ได้จดว่าจ่ายเดือนนี้ 1 รายการ รวม 599 บาท"));
+  assert.ok(text.includes("ค่าห้อง 4,000 ทุกวันที่ 5 (จดแล้วเดือนนี้)"));
+});

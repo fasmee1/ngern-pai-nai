@@ -66,3 +66,15 @@ export function CompareSummaryCard({ comparison, beforeLabel }: { comparison: Co
     </Link>
   );
 }
+
+// One calm line on the home screen; the full view is a tap away.
+export function CompareLine({ comparison }: { comparison: Comparison }) {
+  const { hasBefore, diffSatang, percent, headline } = comparison;
+  return (
+    <Link href="/compare" className="cmp-line" aria-label="ดูรายละเอียดการเทียบเดือนก่อน">
+      {hasBefore ? <ChangePill diff={diffSatang} percent={percent} /> : null}
+      <span className="cmp-line-text">{headline}</span>
+      <IconChevron size={16} />
+    </Link>
+  );
+}
