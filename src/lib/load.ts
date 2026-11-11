@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { monthEnd, monthStart, monthsBefore, parseMonthParam, previousMonthStart, todayInBangkok } from "@/lib/dates";
 import type { Category, Transaction } from "@/lib/summary";
-import type { Bill, Goal } from "@/lib/plans";
+import { billState, type Bill, type Goal } from "@/lib/plans";
 
 export type Account = { id: string; name: string; bankCode?: string | null };
 
@@ -77,6 +77,20 @@ export async function loadMonth(monthParam?: string): Promise<MonthData> {
   };
 }
 
+const PAGE_SIZE = 1000;
+const MAX_PAGES = 50;
+
+export async function allRows<T>(page: (from: number, to: number) => PromiseLike<{ data: T[] | null }>): Promise<T[]> {
+  const out: T[] = [];
+  for (let i = 0; i < MAX_PAGES; i++) {
+    const { data } = await page(i * PAGE_SIZE, (i + 1) * PAGE_SIZE - 1);
+    const rows = data ?? [];
+    out.push(...rows);
+    if (rows.length < PAGE_SIZE) break;
+  }
+  return out;
+}
+
 export type CompareData = {
   current: string;
   // Months that can be compared with, newest first.
@@ -95,18 +109,23 @@ export async function loadCompareData(): Promise<CompareData> {
 
   const [categories, rows] = await Promise.all([
     supabase.from("categories").select("id, name, color").eq("type", "expense").order("created_at"),
-    supabase
-      .from("transactions")
-      .select("category_id, amount_satang, occurred_on")
-      .eq("type", "expense")
-      .is("deleted_at", null)
-      .gte("occurred_on", oldest)
-      .lte("occurred_on", monthEnd(current)),
+    allRows((from, to) =>
+      supabase
+        .from("transactions")
+        .select("category_id, amount_satang, occurred_on")
+        .eq("type", "expense")
+        .is("deleted_at", null)
+        .gte("occurred_on", oldest)
+        .lte("occurred_on", monthEnd(current))
+        .order("occurred_on")
+        .order("id")
+        .range(from, to),
+    ),
   ]);
 
   const byMonth: Record<string, Record<string, number>> = { [current]: {} };
   for (const m of months) byMonth[m] = {};
-  for (const row of rows.data ?? []) {
+  for (const row of rows) {
     const bucket = byMonth[monthStart(row.occurred_on)];
     if (!bucket) continue;
     const id = row.category_id ?? "";
@@ -195,6 +214,29 @@ export async function loadPlans(): Promise<PlansData> {
     categories: (categories.data ?? []).map((c) => ({ id: c.id, name: c.name, color: c.color })),
     accounts: (accounts.data ?? []).map((a) => ({ id: a.id, name: a.name, bankCode: a.bank_code })),
   };
+}
+
+// Bills that are due or fall due within three days and are not written down this month. Newest trouble first.
+export type BillAlert = { id: string; name: string; amountSatang: number; text: string };
+
+export async function loadBillAlerts(): Promise<BillAlert[]> {
+  const supabase = await createSupabaseServerClient();
+  const today = todayInBangkok();
+  const { data } = await supabase
+    .from("recurring_bills")
+    .select("id, name, amount_satang, due_day, last_paid_month")
+    .is("deleted_at", null)
+    .order("due_day");
+  const alerts: (BillAlert & { sort: number })[] = [];
+  for (const b of data ?? []) {
+    const state = billState({ id: b.id, name: b.name, amountSatang: Number(b.amount_satang), categoryId: null, accountId: null, dueDay: b.due_day, lastPaidMonth: b.last_paid_month }, today);
+    if (state.kind === "due") {
+      alerts.push({ id: b.id, name: b.name, amountSatang: Number(b.amount_satang), text: state.lateDays === 0 ? "ครบกำหนดวันนี้" : `เลยกำหนด ${state.lateDays} วัน`, sort: -state.lateDays });
+    } else if (state.kind === "soon" && state.inDays <= 3) {
+      alerts.push({ id: b.id, name: b.name, amountSatang: Number(b.amount_satang), text: `อีก ${state.inDays} วัน`, sort: state.inDays });
+    }
+  }
+  return alerts.sort((a, b) => a.sort - b.sort).map((a) => ({ id: a.id, name: a.name, amountSatang: a.amountSatang, text: a.text }));
 }
 
 export type SignedInUser = { id: string; email: string | null; user_metadata: Record<string, unknown> };

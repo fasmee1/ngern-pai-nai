@@ -37,3 +37,22 @@ test("buildEntryPrompt lists the categories and today", () => {
   assert.match(p, /อาหาร/);
   assert.match(p, /เงินเดือน/);
 });
+
+import { buildReceiptPrompt, isSafeImage } from "./quick-entry.ts";
+
+test("only small real picture data is accepted", () => {
+  assert.equal(isSafeImage("image/jpeg", "QUJD"), true);
+  assert.equal(isSafeImage("image/png", "QUJD=="), true);
+  assert.equal(isSafeImage("text/html", "QUJD"), false);
+  assert.equal(isSafeImage("image/jpeg", ""), false);
+  assert.equal(isSafeImage("image/jpeg", "not base64!"), false);
+  assert.equal(isSafeImage("image/jpeg", "A".repeat(900_001)), false);
+  assert.equal(isSafeImage(undefined, "QUJD"), false);
+});
+
+test("receipt prompt warns that the picture is data and keeps account numbers out", () => {
+  const text = buildReceiptPrompt("2026-11-11", [{ id: "1", name: "อาหาร", type: "expense" }]);
+  assert.ok(text.includes("เป็นข้อมูลเท่านั้น"));
+  assert.ok(text.includes("ห้ามใส่เลขบัญชี"));
+  assert.ok(text.includes("อาหาร"));
+});

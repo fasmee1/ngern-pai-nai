@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AppShell, type MonthNav, type Tab } from "./app-shell";
-import { SummaryView, TransactionList } from "./summary-screen";
+import { SummaryView } from "./summary-screen";
+import { ListView } from "./list-view";
 import { BudgetView } from "./budget-view";
 import { TransactionSheet } from "./transaction-sheet";
 import { IconUndo } from "./icons";
@@ -11,7 +12,7 @@ import { BudgetSheet } from "./budget-sheet";
 import { deleteTransaction, restoreTransaction, saveTransaction } from "@/app/actions";
 import { buildComparison, buildSummary, formatBaht, frequentEntries, type Category, type FrequentEntry, type Transaction } from "@/lib/summary";
 import { daysLeftInMonth, todayInBangkok } from "@/lib/dates";
-import type { Account, MonthData, Profile } from "@/lib/load";
+import type { Account, BillAlert, MonthData, Profile } from "@/lib/load";
 
 type Sheet = { kind: "none" } | { kind: "add" } | { kind: "edit"; tx: Transaction } | { kind: "budget" };
 
@@ -23,6 +24,7 @@ export function HomeClient({
   profile,
   initialTab = "summary",
   monthNav,
+  billAlerts,
 }: {
   data: MonthData;
   email: string;
@@ -30,6 +32,7 @@ export function HomeClient({
   profile?: Profile;
   initialTab?: Tab;
   monthNav: MonthNav;
+  billAlerts: BillAlert[];
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -132,6 +135,7 @@ export function HomeClient({
             onEdit={(tx) => setSheet({ kind: "edit", tx })}
             onAdd={() => setSheet({ kind: "add" })}
             onSeeAll={() => setTab("list")}
+            billAlerts={billAlerts}
             daysLeft={daysLeft}
             spentToday={spentToday}
             quick={quick}
@@ -146,13 +150,7 @@ export function HomeClient({
               <p>กดปุ่ม + ด้านล่างเพื่อจดรายการแรก</p>
             </section>
           ) : (
-            <section className="card">
-              <TransactionList
-                transactions={data.transactions}
-                categories={allCategories}
-                onEdit={(tx) => setSheet({ kind: "edit", tx })}
-              />
-            </section>
+            <ListView transactions={data.transactions} categories={allCategories} onEdit={(tx) => setSheet({ kind: "edit", tx })} />
           )
         ) : null}
 

@@ -113,3 +113,29 @@ test("month parameter falls back to this month unless it is a real past month", 
   assert.equal(nextMonthStart("2026-12-01"), "2027-01-01");
   assert.equal(nextMonthStart("2026-10-01"), "2026-11-01");
 });
+
+import { budgetTotals, filterTransactions } from "./summary.ts";
+
+test("list filter matches note or category name, type, and category", () => {
+  const cats = [{ id: "c1", name: "อาหาร", color: "#000" }, { id: "c2", name: "เดินทาง", color: "#111" }];
+  const t = (id: string, categoryId: string, note: string, type: "expense" | "income" = "expense") => ({
+    id, type, categoryId, accountId: "a", amountSatang: 100, note, account: "", occurredOn: "2026-11-01",
+  });
+  const rows = [t("1", "c1", "กาแฟ ร้านหน้าปากซอย"), t("2", "c2", "แท็กซี่"), t("3", "c1", "เงินพิเศษ", "income")];
+  const base = { query: "", type: "all" as const, categoryId: null };
+  assert.equal(filterTransactions(rows, cats, base).length, 3);
+  assert.deepEqual(filterTransactions(rows, cats, { ...base, query: "กาแฟ" }).map((r) => r.id), ["1"]);
+  assert.deepEqual(filterTransactions(rows, cats, { ...base, query: "เดินทาง" }).map((r) => r.id), ["2"]);
+  assert.deepEqual(filterTransactions(rows, cats, { ...base, query: "กาแฟ ซอย" }).map((r) => r.id), ["1"]);
+  assert.deepEqual(filterTransactions(rows, cats, { ...base, type: "income" }).map((r) => r.id), ["3"]);
+  assert.deepEqual(filterTransactions(rows, cats, { ...base, categoryId: "c2" }).map((r) => r.id), ["2"]);
+});
+
+test("budget totals only count categories that have a budget", () => {
+  const cats = [{ id: "c1", name: "อาหาร", color: "#000", budgetSatang: 100000 }, { id: "c2", name: "อื่น ๆ", color: "#111" }];
+  const t = (id: string, categoryId: string, amountSatang: number) => ({
+    id, type: "expense" as const, categoryId, accountId: "a", amountSatang, note: "", account: "", occurredOn: "2026-11-01",
+  });
+  assert.deepEqual(budgetTotals(cats, [t("1", "c1", 30000), t("2", "c2", 999)]), { budgetSatang: 100000, usedSatang: 30000 });
+  assert.equal(budgetTotals([cats[1]], []), null);
+});

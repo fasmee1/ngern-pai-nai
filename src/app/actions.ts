@@ -10,7 +10,7 @@ import { BANKS, parseBankCodes } from "@/lib/banks";
 import { MAX_SPEAK_CHARS } from "@/lib/ai-prompt";
 import { askGeminiJson, speakGemini } from "@/lib/gemini";
 import { takeAiUse } from "@/lib/ai-limit";
-import { buildEntryPrompt, MAX_ENTRY_CHARS, parseEntry, type QuickEntry } from "@/lib/quick-entry";
+import { buildEntryPrompt, buildReceiptPrompt, isSafeImage, MAX_ENTRY_CHARS, parseEntry, type QuickEntry } from "@/lib/quick-entry";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -270,6 +270,26 @@ export async function parseEntryText(text: string): Promise<{ ok: true; entry: Q
   if (!raw) return { ok: false, error: "AI ตอบไม่ได้ตอนนี้ ลองอีกครั้งหรือกรอกเองนะ" };
   const entry = parseEntry(raw, categories, today);
   if (!entry) return { ok: false, error: "AI อ่านจำนวนเงินไม่ออก ลองพิมพ์ใหม่ เช่น กินข้าว 60" };
+  return { ok: true, entry };
+}
+
+// Reads a slip or receipt picture into suggested form fields. The picture is only sent to the AI for this one read and is not stored.
+export async function parseReceiptImage(mime: string, base64: string): Promise<{ ok: true; entry: QuickEntry } | { ok: false; error: string }> {
+  const supabase = await signedInClient();
+  if (!supabase) return { ok: false, error: "ยังไม่ได้เข้าระบบ ลองเข้าใหม่นะ" };
+  if (!isSafeImage(mime, base64)) return { ok: false, error: "รูปไม่ถูกต้องหรือใหญ่เกินไป ลองถ่ายใหม่นะ" };
+
+  const use = await takeAiUse(supabase);
+  if (!use.ok) return use;
+
+  const { data } = await supabase.from("categories").select("id, name, type").order("created_at");
+  const categories = (data ?? []).map((c) => ({ id: c.id, name: c.name, type: c.type as "income" | "expense" }));
+  const today = todayInBangkok();
+
+  const raw = await askGeminiJson(buildReceiptPrompt(today, categories), "อ่านรูปนี้", ENTRY_SCHEMA, { mime, base64 });
+  if (!raw) return { ok: false, error: "AI อ่านรูปไม่ได้ตอนนี้ ลองอีกครั้งหรือกรอกเองนะ" };
+  const entry = parseEntry(raw, categories, today);
+  if (!entry) return { ok: false, error: "อ่านยอดเงินจากรูปไม่ออก ลองถ่ายให้ชัดขึ้น หรือกรอกเองนะ" };
   return { ok: true, entry };
 }
 

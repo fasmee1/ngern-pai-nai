@@ -170,3 +170,26 @@ export function frequentEntries(transactions: Transaction[], limit = 4): Frequen
   }
   return [...groups.values()].filter((g) => g.count >= 2).sort((a, b) => b.count - a.count).slice(0, limit);
 }
+
+export type ListFilter = { query: string; type: "all" | "expense" | "income"; categoryId: string | null };
+
+// Keeps the rows that match the search words (note or category name), the type, and the category.
+export function filterTransactions(transactions: Transaction[], categories: Category[], filter: ListFilter): Transaction[] {
+  const words = filter.query.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  const nameOf = new Map(categories.map((c) => [c.id, c.name.toLowerCase()]));
+  return transactions.filter((t) => {
+    if (filter.type !== "all" && t.type !== filter.type) return false;
+    if (filter.categoryId && t.categoryId !== filter.categoryId) return false;
+    const haystack = `${t.note.toLowerCase()} ${nameOf.get(t.categoryId) ?? ""}`;
+    return words.every((w) => haystack.includes(w));
+  });
+}
+
+// Total budget and how much of it is used, over the categories that have a budget. Null when none is set.
+export function budgetTotals(categories: Category[], transactions: Transaction[]): { budgetSatang: number; usedSatang: number } | null {
+  const withBudget = categories.filter((c) => c.budgetSatang !== undefined && c.budgetSatang > 0);
+  if (withBudget.length === 0) return null;
+  const ids = new Set(withBudget.map((c) => c.id));
+  const usedSatang = transactions.filter((t) => t.type === "expense" && ids.has(t.categoryId)).reduce((s, t) => s + t.amountSatang, 0);
+  return { budgetSatang: withBudget.reduce((s, c) => s + (c.budgetSatang ?? 0), 0), usedSatang };
+}

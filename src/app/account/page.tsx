@@ -51,6 +51,12 @@ async function AccountContent() {
         </section>
 
         <section className="glass page-card">
+          <h2>ส่งออกข้อมูล</h2>
+          <p className="page-text">ดาวน์โหลดรายการทั้งหมดเป็นไฟล์ตาราง เปิดใน Excel หรือ Google Sheets ได้ เก็บไว้สำรองหรือใช้ทำภาษี</p>
+          <a href="/api/export" download className="ghost wide icon-button">ดาวน์โหลดรายการทั้งหมด</a>
+        </section>
+
+        <section className="glass page-card">
           <h2>หน้าตา</h2>
           <p className="page-text">เลือกโหมดสว่างหรือมืด หรือให้ตามการตั้งค่าของเครื่อง</p>
           <ThemePicker />

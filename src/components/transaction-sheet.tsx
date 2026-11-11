@@ -4,7 +4,9 @@ import { IconClose } from "./icons";
 import { AccountPicker } from "./account-picker";
 
 import { useActionState, useEffect, useState } from "react";
-import { addCategory, parseEntryText, saveTransaction } from "@/app/actions";
+import { addCategory, parseEntryText, parseReceiptImage, saveTransaction } from "@/app/actions";
+import { shrinkImage } from "@/lib/image-shrink";
+import type { QuickEntry } from "@/lib/quick-entry";
 import type { Account } from "@/lib/load";
 import type { Transaction } from "@/lib/summary";
 import { todayInBangkok } from "@/lib/dates";
@@ -74,13 +76,36 @@ export function TransactionSheet({
       setAiError(result.error);
       return;
     }
-    const e = result.entry;
+    applyEntry(result.entry);
+    setSentence("");
+  }
+
+  // Picture of a slip or receipt: shrink it here, then the AI reads it.
+  async function fillFromPicture(file: File | undefined) {
+    if (!file) return;
+    setAiError(null);
+    setAiPending(true);
+    const picture = await shrinkImage(file);
+    if (!picture) {
+      setAiPending(false);
+      setAiError("เปิดรูปนี้ไม่ได้ ลองรูปอื่นนะ");
+      return;
+    }
+    const result = await parseReceiptImage(picture.mime, picture.base64);
+    setAiPending(false);
+    if (!result.ok) {
+      setAiError(result.error);
+      return;
+    }
+    applyEntry(result.entry);
+  }
+
+  function applyEntry(e: QuickEntry) {
     setType(e.type);
     setAmount(e.amount);
     setCategoryId(e.categoryId ?? "");
     setNote(e.note);
     if (e.date) setDate(e.date);
-    setSentence("");
     if (!e.categoryId) setAiError("เลือกหมวดเองอีกนิดนะ AI ยังเดาหมวดไม่ได้");
   }
 
@@ -127,6 +152,20 @@ export function TransactionSheet({
                   {aiPending ? "กำลังอ่าน..." : "กรอกให้"}
                 </button>
               </div>
+              <label className={aiPending ? "ghost wide icon-button receipt-btn disabled" : "ghost wide icon-button receipt-btn"}>
+                ถ่ายรูปหรือเลือกรูปสลิปให้ AI อ่าน
+                <input
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  disabled={aiPending}
+                  onChange={(e) => {
+                    void fillFromPicture(e.target.files?.[0]);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              <p className="hint">รูปถูกส่งให้ AI อ่านครั้งเดียวและแอปไม่เก็บรูปไว้ ตรวจยอดก่อนกดบันทึกทุกครั้ง</p>
               {aiError ? <p className="form-error" role="alert">{aiError}</p> : null}
             </div>
           )}

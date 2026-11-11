@@ -10,6 +10,7 @@ import { formatBaht, todayAllowance, type Category, type Comparison, type Freque
 import { thaiDateLabel } from "@/lib/dates";
 import { CategoryIcon, IconChevron, IconTarget, IconTransfer } from "./icons";
 import { CompareLine } from "./compare-view";
+import type { BillAlert } from "@/lib/load";
 
 const RADIUS = 78;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -82,6 +83,7 @@ export function SummaryView({
   onEdit,
   onAdd,
   onSeeAll,
+  billAlerts,
   daysLeft,
   spentToday,
   quick,
@@ -94,6 +96,7 @@ export function SummaryView({
   onEdit: (tx: Transaction) => void;
   onAdd: () => void;
   onSeeAll: () => void;
+  billAlerts: BillAlert[];
   daysLeft: number;
   spentToday: number;
   quick: FrequentEntry[];
@@ -155,6 +158,19 @@ export function SummaryView({
           </div>
         </dl>
       </section>
+
+      {billAlerts.length > 0 ? (
+        <Link href="/plans" className="bill-alert" aria-label="ดูบิลประจำเดือน">
+          <span className="bill-alert-icon"><IconTarget size={18} /></span>
+          <span className="bill-alert-text">
+            <strong>
+              {billAlerts.length === 1 ? billAlerts[0].name : `${billAlerts[0].name} และอีก ${billAlerts.length - 1} บิล`} {billAlerts[0].text}
+            </strong>
+            <small>รวม {formatBaht(billAlerts.reduce((s, b) => s + b.amountSatang, 0))} บาท · แตะเพื่อดูและจดว่าจ่ายแล้ว</small>
+          </span>
+          <IconChevron size={16} />
+        </Link>
+      ) : null}
 
       {quick.length > 0 ? (
         <section className="quick" aria-label="จดด่วน">

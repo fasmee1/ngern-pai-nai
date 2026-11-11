@@ -1,7 +1,7 @@
 import { SignInScreen } from "./sign-in-screen";
 import { HomeClient } from "./home-client";
 import { BankSetup } from "./bank-setup";
-import { currentUser, googleName, googlePhoto, loadMonth, loadProfile } from "@/lib/load";
+import { currentUser, googleName, googlePhoto, loadBillAlerts, loadMonth, loadProfile } from "@/lib/load";
 import { ensureSetup } from "@/app/actions";
 import { monthStart, nextMonthStart, previousMonthStart, thaiMonthLabel, todayInBangkok } from "@/lib/dates";
 
@@ -14,7 +14,11 @@ export async function AuthGate({ failed, month: monthParam }: { failed: boolean;
   }
 
   await ensureSetup();
-  const [month, profile] = await Promise.all([loadMonth(monthParam), loadProfile(googleName(user), googlePhoto(user))]);
+  const [month, profile, billAlerts] = await Promise.all([
+    loadMonth(monthParam),
+    loadProfile(googleName(user), googlePhoto(user)),
+    loadBillAlerts(),
+  ]);
 
   if (!profile.accountsSetup) {
     return <BankSetup name={profile.name} />;
@@ -36,6 +40,7 @@ export async function AuthGate({ failed, month: monthParam }: { failed: boolean;
       email={user.email ?? ""}
       monthLabel={thaiMonthLabel(month.month)}
       monthNav={monthNav}
+      billAlerts={monthNav.isCurrent ? billAlerts : []}
     />
   );
 }

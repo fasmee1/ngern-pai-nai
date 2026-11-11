@@ -123,7 +123,7 @@ export async function streamGemini(system: string, turns: Turn[]): Promise<Strea
 }
 
 // Asks for one small JSON answer (no streaming). Returns the raw JSON text, or null if Gemini could not answer.
-export async function askGeminiJson(system: string, text: string, schema: object): Promise<string | null> {
+export async function askGeminiJson(system: string, text: string, schema: object, image?: { mime: string; base64: string }): Promise<string | null> {
   const key = process.env.GEMINI_API_KEY;
   if (!key) return null;
   try {
@@ -132,7 +132,7 @@ export async function askGeminiJson(system: string, text: string, schema: object
       headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
       body: JSON.stringify({
         systemInstruction: { parts: [{ text: system }] },
-        contents: [{ role: "user", parts: [{ text }] }],
+        contents: [{ role: "user", parts: image ? [{ inlineData: { mimeType: image.mime, data: image.base64 } }, { text }] : [{ text }] }],
         generationConfig: { temperature: 0.1, maxOutputTokens: 1500, responseMimeType: "application/json", responseSchema: schema },
       }),
       signal: AbortSignal.timeout(30_000),
