@@ -2,6 +2,7 @@ import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { parseChat } from "@/lib/ai-prompt";
 import { buildAdvisorSystem } from "@/lib/advisor";
 import { streamGemini } from "@/lib/gemini";
+import { takeAiUse } from "@/lib/ai-limit";
 
 // A reply can take a while to write; it is sent as it is written so the screen never waits for all of it.
 export const maxDuration = 120;
@@ -23,6 +24,9 @@ export async function POST(request: Request) {
   }
   const chat = parseChat((body as { history?: unknown } | null)?.history);
   if (!chat) return fail("ข้อความไม่ถูกต้อง ลองพิมพ์ใหม่นะ (ไม่เกิน 500 ตัวอักษร)", 400);
+
+  const use = await takeAiUse(supabase);
+  if (!use.ok) return fail(use.error, 429);
 
   const system = await buildAdvisorSystem();
   const result = await streamGemini(system, chat);

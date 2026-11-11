@@ -9,6 +9,7 @@ import { parseDeadline, parseDueDay } from "@/lib/plans";
 import { BANKS, parseBankCodes } from "@/lib/banks";
 import { MAX_SPEAK_CHARS } from "@/lib/ai-prompt";
 import { askGeminiJson, speakGemini } from "@/lib/gemini";
+import { takeAiUse } from "@/lib/ai-limit";
 import { buildEntryPrompt, MAX_ENTRY_CHARS, parseEntry, type QuickEntry } from "@/lib/quick-entry";
 
 type Result = { ok: true } | { ok: false; error: string };
@@ -234,6 +235,8 @@ export async function speakAnswer(text: string): Promise<{ ok: true; mime: strin
   if (!supabase) return { ok: false, error: "ยังไม่ได้เข้าระบบ ลองเข้าใหม่นะ" };
   const clean = typeof text === "string" ? text.trim().slice(0, MAX_SPEAK_CHARS) : "";
   if (!clean) return { ok: false, error: "ไม่มีข้อความให้อ่าน" };
+  const use = await takeAiUse(supabase);
+  if (!use.ok) return use;
   return speakGemini(clean);
 }
 
@@ -255,6 +258,9 @@ export async function parseEntryText(text: string): Promise<{ ok: true; entry: Q
   if (!supabase) return { ok: false, error: "ยังไม่ได้เข้าระบบ ลองเข้าใหม่นะ" };
   const clean = typeof text === "string" ? text.trim().slice(0, MAX_ENTRY_CHARS) : "";
   if (!clean) return { ok: false, error: "พิมพ์รายการก่อนนะ เช่น กินข้าว 60" };
+
+  const use = await takeAiUse(supabase);
+  if (!use.ok) return use;
 
   const { data } = await supabase.from("categories").select("id, name, type").order("created_at");
   const categories = (data ?? []).map((c) => ({ id: c.id, name: c.name, type: c.type as "income" | "expense" }));
