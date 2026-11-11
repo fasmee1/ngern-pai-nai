@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { AppShell, type Tab } from "./app-shell";
+import { AppShell, type MonthNav, type Tab } from "./app-shell";
 import { SummaryView, TransactionList } from "./summary-screen";
 import { BudgetView } from "./budget-view";
 import { TransactionSheet } from "./transaction-sheet";
@@ -22,12 +22,14 @@ export function HomeClient({
   monthLabel,
   profile,
   initialTab = "summary",
+  monthNav,
 }: {
   data: MonthData;
   email: string;
   monthLabel: string;
   profile?: Profile;
   initialTab?: Tab;
+  monthNav: MonthNav;
 }) {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>(initialTab);
@@ -57,9 +59,10 @@ export function HomeClient({
     [data],
   );
 
-  const quick = useMemo(() => frequentEntries(data.transactions), [data.transactions]);
+  // The one-tap chips and today's allowance only make sense for the month we are in.
+  const quick = useMemo(() => (monthNav.isCurrent ? frequentEntries(data.transactions) : []), [data.transactions, monthNav.isCurrent]);
   const today = todayInBangkok();
-  const daysLeft = daysLeftInMonth(today);
+  const daysLeft = monthNav.isCurrent ? daysLeftInMonth(today) : 0;
   const spentToday = data.transactions.filter((t) => t.type === "expense" && t.occurredOn === today).reduce((sum, t) => sum + t.amountSatang, 0);
 
   // One tap writes down a repeated expense for today. A wrong tap can be fixed from the list.
@@ -114,6 +117,7 @@ export function HomeClient({
       <AppShell
         title={titles[tab]}
         subtitle={monthLabel}
+        monthNav={monthNav}
         profile={profile}
         tab={tab}
         onTab={setTab}

@@ -5,7 +5,7 @@ import { AuthGate } from "@/components/auth-gate";
 export default function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; m?: string }>;
 }) {
   return (
     <Suspense fallback={<AppSkeleton />}>
@@ -17,8 +17,8 @@ export default function Home({
 async function HomeGate({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; m?: string }>;
 }) {
-  const { error } = await searchParams;
-  return <AuthGate failed={error === "login"} />;
+  const { error, m } = await searchParams;
+  return <AuthGate failed={error === "login"} month={m} />;
 }

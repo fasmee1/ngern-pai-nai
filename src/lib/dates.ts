@@ -58,3 +58,19 @@ export function daysLeftInMonth(today: string): number {
   const last = Number(monthEnd(monthStart(today)).slice(8, 10));
   return last - Number(today.slice(8, 10)) + 1;
 }
+
+// First day of the month after the given month start.
+export function nextMonthStart(monthStartIso: string): string {
+  const [y, m] = monthStartIso.split("-").map(Number);
+  const d = new Date(Date.UTC(y, m, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}-01`;
+}
+
+// The month to show from a "YYYY-MM" address parameter. Anything odd, in the future or very old shows this month.
+export function parseMonthParam(raw: string | undefined, today: string): string {
+  const current = monthStart(today);
+  if (!raw || !/^\d{4}-(0[1-9]|1[0-2])$/.test(raw)) return current;
+  const picked = `${raw}-01`;
+  if (picked > current || picked < "2020-01-01") return current;
+  return picked;
+}

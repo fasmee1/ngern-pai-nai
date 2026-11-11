@@ -98,3 +98,18 @@ test("frequent entries need two repeats and keep the newest amount", () => {
   assert.equal(out[0].amountSatang, 5500);
   assert.equal(out[0].count, 2);
 });
+
+import { nextMonthStart, parseMonthParam } from "./dates.ts";
+
+test("month parameter falls back to this month unless it is a real past month", () => {
+  const today = "2026-11-11";
+  assert.equal(parseMonthParam("2026-10", today), "2026-10-01");
+  assert.equal(parseMonthParam("2026-11", today), "2026-11-01");
+  assert.equal(parseMonthParam("2026-12", today), "2026-11-01");
+  assert.equal(parseMonthParam("2026-13", today), "2026-11-01");
+  assert.equal(parseMonthParam("abc", today), "2026-11-01");
+  assert.equal(parseMonthParam(undefined, today), "2026-11-01");
+  assert.equal(parseMonthParam("2019-12", today), "2026-11-01");
+  assert.equal(nextMonthStart("2026-12-01"), "2027-01-01");
+  assert.equal(nextMonthStart("2026-10-01"), "2026-11-01");
+});

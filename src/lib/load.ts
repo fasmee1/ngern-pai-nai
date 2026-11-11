@@ -1,7 +1,7 @@
 import "server-only";
 import { connection } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import { monthEnd, monthStart, monthsBefore, previousMonthStart, todayInBangkok } from "@/lib/dates";
+import { monthEnd, monthStart, monthsBefore, parseMonthParam, previousMonthStart, todayInBangkok } from "@/lib/dates";
 import type { Category, Transaction } from "@/lib/summary";
 import type { Bill, Goal } from "@/lib/plans";
 
@@ -18,9 +18,9 @@ export type MonthData = {
 };
 
 // Loads one month for the signed-in person. Row-level security limits every query to their rows.
-export async function loadMonth(): Promise<MonthData> {
+export async function loadMonth(monthParam?: string): Promise<MonthData> {
   const supabase = await createSupabaseServerClient();
-  const month = monthStart(todayInBangkok());
+  const month = parseMonthParam(monthParam, todayInBangkok());
   const end = monthEnd(month);
 
   const before = previousMonthStart(month);

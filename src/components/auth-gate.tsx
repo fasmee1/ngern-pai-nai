@@ -3,10 +3,10 @@ import { HomeClient } from "./home-client";
 import { BankSetup } from "./bank-setup";
 import { currentUser, googleName, googlePhoto, loadMonth, loadProfile } from "@/lib/load";
 import { ensureSetup } from "@/app/actions";
-import { thaiMonthLabel } from "@/lib/dates";
+import { monthStart, nextMonthStart, previousMonthStart, thaiMonthLabel, todayInBangkok } from "@/lib/dates";
 
 // Reads the session cookie, so it must run inside Suspense.
-export async function AuthGate({ failed }: { failed: boolean }) {
+export async function AuthGate({ failed, month: monthParam }: { failed: boolean; month?: string }) {
   const user = await currentUser();
 
   if (!user) {
@@ -14,11 +14,20 @@ export async function AuthGate({ failed }: { failed: boolean }) {
   }
 
   await ensureSetup();
-  const [month, profile] = await Promise.all([loadMonth(), loadProfile(googleName(user), googlePhoto(user))]);
+  const [month, profile] = await Promise.all([loadMonth(monthParam), loadProfile(googleName(user), googlePhoto(user))]);
 
   if (!profile.accountsSetup) {
     return <BankSetup name={profile.name} />;
   }
+
+  // Arrows for the month being shown. There is no way forward from the current month.
+  const current = monthStart(todayInBangkok());
+  const hrefFor = (m: string) => (m === current ? "/" : `/?m=${m.slice(0, 7)}`);
+  const monthNav = {
+    prevHref: hrefFor(previousMonthStart(month.month)),
+    nextHref: month.month < current ? hrefFor(nextMonthStart(month.month)) : null,
+    isCurrent: month.month === current,
+  };
 
   return (
     <HomeClient
@@ -26,6 +35,7 @@ export async function AuthGate({ failed }: { failed: boolean }) {
       profile={profile}
       email={user.email ?? ""}
       monthLabel={thaiMonthLabel(month.month)}
+      monthNav={monthNav}
     />
   );
 }

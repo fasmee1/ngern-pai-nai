@@ -5,12 +5,15 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { IconAccount, IconAdd, IconBudget, IconList, IconSummary } from "./icons";
+import { IconAccount, IconAdd, IconBack, IconBudget, IconChevron, IconList, IconSummary } from "./icons";
 import { Avatar } from "./avatar";
 import { LogoLockup } from "./logo";
 import { AiChat } from "./ai-chat";
 
 export type Tab = "summary" | "list" | "budget";
+
+// Arrows next to the month name. nextHref is null on the current month.
+export type MonthNav = { prevHref: string; nextHref: string | null; isCurrent: boolean };
 
 const LEFT_TABS: { id: Tab; label: string; Icon: typeof IconSummary }[] = [
   { id: "summary", label: "สรุป", Icon: IconSummary },
@@ -28,6 +31,7 @@ export function AppShell({
   onTab,
   onAdd,
   accountHref = "/account",
+  monthNav,
   children,
 }: {
   title: string;
@@ -37,6 +41,7 @@ export function AppShell({
   onTab: (tab: Tab) => void;
   onAdd: () => void;
   accountHref?: string;
+  monthNav?: MonthNav;
   children: ReactNode;
 }) {
   return (
@@ -53,7 +58,19 @@ export function AppShell({
           </div>
         </div>
         <div className="appbar-text">
-          <p className="appbar-sub">{subtitle}</p>
+          {monthNav ? (
+            <div className="month-nav">
+              <Link href={monthNav.prevHref} scroll={false} className="month-arrow" aria-label="เดือนก่อนหน้า"><IconBack size={16} /></Link>
+              <p className="appbar-sub">{subtitle}</p>
+              {monthNav.nextHref ? (
+                <Link href={monthNav.nextHref} scroll={false} className="month-arrow" aria-label="เดือนถัดไป"><IconChevron size={16} /></Link>
+              ) : (
+                <span className="month-arrow off" aria-hidden="true"><IconChevron size={16} /></span>
+              )}
+            </div>
+          ) : (
+            <p className="appbar-sub">{subtitle}</p>
+          )}
           <h1 className="appbar-title">{title}</h1>
         </div>
       </header>
