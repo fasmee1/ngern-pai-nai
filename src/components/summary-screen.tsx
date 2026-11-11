@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { dailyAllowance, formatBaht, type Category, type Comparison, type FrequentEntry, type Slice, type Summary, type Transaction } from "@/lib/summary";
+import { formatBaht, todayAllowance, type Category, type Comparison, type FrequentEntry, type Slice, type Summary, type Transaction } from "@/lib/summary";
 import { thaiDateLabel } from "@/lib/dates";
 import { CategoryIcon, IconChevron, IconTarget, IconTransfer } from "./icons";
 import { CompareLine } from "./compare-view";
@@ -83,6 +83,7 @@ export function SummaryView({
   onAdd,
   onSeeAll,
   daysLeft,
+  spentToday,
   quick,
   onQuick,
 }: {
@@ -94,6 +95,7 @@ export function SummaryView({
   onAdd: () => void;
   onSeeAll: () => void;
   daysLeft: number;
+  spentToday: number;
   quick: FrequentEntry[];
   onQuick: (entry: FrequentEntry) => void;
 }) {
@@ -101,7 +103,7 @@ export function SummaryView({
   const selected = summary.slices.find((slice) => slice.id === selectedId) ?? null;
   const toggle = (id: string) => setSelectedId((current) => (current === id ? null : id));
   const empty = transactions.length === 0;
-  const perDay = dailyAllowance(summary.balanceSatang, daysLeft);
+  const today = todayAllowance(summary.balanceSatang, spentToday, daysLeft);
   const usedPercent = summary.incomeSatang > 0 ? Math.round((summary.expenseSatang / summary.incomeSatang) * 100) : 0;
 
   if (empty) {
@@ -128,8 +130,11 @@ export function SummaryView({
           <span>{formatBaht(summary.balanceSatang)}</span>
           <small>บาท</small>
         </p>
-        {perDay !== null ? (
-          <p className="bc-day">วันนี้ใช้ได้ประมาณ <strong>{formatBaht(perDay)}</strong> บาท · เหลืออีก {daysLeft} วัน</p>
+        {today !== null ? (
+          <div className="bc-day" data-over={today.leftSatang < 0}>
+            <p>{today.leftSatang < 0 ? "วันนี้ใช้เกินไปแล้ว" : "วันนี้เหลือใช้ได้"} <strong>{formatBaht(Math.abs(today.leftSatang))}</strong> บาท</p>
+            <small>งบวันนี้ {formatBaht(today.budgetSatang)} · ใช้ไปแล้ว {formatBaht(today.spentSatang)} · เหลืออีก {daysLeft} วันในเดือน</small>
+          </div>
         ) : null}
         {summary.incomeSatang > 0 ? (
           <>

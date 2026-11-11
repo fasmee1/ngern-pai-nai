@@ -144,10 +144,14 @@ export function expenseByCategory(transactions: Transaction[]): Record<string, n
   return out;
 }
 
-// What can be spent each day for the rest of the month (satang), or null when nothing is left.
-export function dailyAllowance(balanceSatang: number, daysLeft: number): number | null {
-  if (balanceSatang <= 0 || daysLeft <= 0) return null;
-  return Math.floor(balanceSatang / daysLeft);
+// Today's room to spend. The month's balance plus what was already spent today is split over the days left
+// (today included), so every expense written down today lowers "left" at once. Null when nothing is left.
+export type TodayAllowance = { budgetSatang: number; spentSatang: number; leftSatang: number };
+export function todayAllowance(balanceSatang: number, spentTodaySatang: number, daysLeft: number): TodayAllowance | null {
+  const startOfDay = balanceSatang + spentTodaySatang;
+  if (startOfDay <= 0 || daysLeft <= 0) return null;
+  const budgetSatang = Math.floor(startOfDay / daysLeft);
+  return { budgetSatang, spentSatang: spentTodaySatang, leftSatang: budgetSatang - spentTodaySatang };
 }
 
 export type FrequentEntry = { note: string; categoryId: string; accountId: string; amountSatang: number; count: number };

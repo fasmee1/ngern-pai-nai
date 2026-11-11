@@ -75,13 +75,17 @@ test("says there is nothing to compare when last month is empty", () => {
   assert.equal(result.percent, null);
 });
 
-import { dailyAllowance, frequentEntries } from "./summary.ts";
+import { frequentEntries, todayAllowance } from "./summary.ts";
 
-test("daily allowance divides what is left and hides when nothing is left", () => {
-  assert.equal(dailyAllowance(204178, 20), 10208);
-  assert.equal(dailyAllowance(0, 20), null);
-  assert.equal(dailyAllowance(-5, 20), null);
-  assert.equal(dailyAllowance(1000, 0), null);
+test("today's allowance drops as today's spending is written down", () => {
+  // 2,000 baht left over 20 days is 100 baht a day.
+  assert.deepEqual(todayAllowance(200000, 0, 20), { budgetSatang: 10000, spentSatang: 0, leftSatang: 10000 });
+  // Spend 30 baht today: the balance falls to 1,970 but the day's budget stays 100.
+  assert.deepEqual(todayAllowance(197000, 3000, 20), { budgetSatang: 10000, spentSatang: 3000, leftSatang: 7000 });
+  // Spend 130 baht: over today's budget, so left is negative.
+  assert.equal(todayAllowance(187000, 13000, 20)?.leftSatang, -3000);
+  assert.equal(todayAllowance(0, 0, 20), null);
+  assert.equal(todayAllowance(1000, 0, 0), null);
 });
 
 test("frequent entries need two repeats and keep the newest amount", () => {

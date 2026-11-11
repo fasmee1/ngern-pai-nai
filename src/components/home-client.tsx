@@ -58,7 +58,9 @@ export function HomeClient({
   );
 
   const quick = useMemo(() => frequentEntries(data.transactions), [data.transactions]);
-  const daysLeft = daysLeftInMonth(todayInBangkok());
+  const today = todayInBangkok();
+  const daysLeft = daysLeftInMonth(today);
+  const spentToday = data.transactions.filter((t) => t.type === "expense" && t.occurredOn === today).reduce((sum, t) => sum + t.amountSatang, 0);
 
   // One tap writes down a repeated expense for today. A wrong tap can be fixed from the list.
   function quickAdd(entry: FrequentEntry) {
@@ -127,6 +129,7 @@ export function HomeClient({
             onAdd={() => setSheet({ kind: "add" })}
             onSeeAll={() => setTab("list")}
             daysLeft={daysLeft}
+            spentToday={spentToday}
             quick={quick}
             onQuick={quickAdd}
           />
