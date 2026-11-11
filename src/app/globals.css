@@ -2200,3 +2200,6 @@ html[data-theme="dark"] .acct-chip[aria-checked="true"] { background: #25244a; }
 .bc-row dt::before { content: ""; display: inline-block; width: 8px; height: 8px; margin-right: 7px; border-radius: 50%; background: #6ee7a8; vertical-align: 1px; }
 .bc-row > div + div dt::before { background: #ffb199; }
 .bc-row dd { color: #fff; }
+
+/* Balance card: soft single-hue gradient, nothing else on top */
+.balance-card { background: linear-gradient(150deg, #4a3fc9 0%, #4c4fd6 45%, #3f7be0 100%); }
