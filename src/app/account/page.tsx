@@ -1,5 +1,6 @@
 import { IconBack } from "@/components/icons";
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/page-skeleton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SignOutButton } from "@/components/sign-out-button";
@@ -11,7 +12,7 @@ import { AiChat } from "@/components/ai-chat";
 
 export default function AccountPage() {
   return (
-    <Suspense fallback={<div className="screen" aria-busy="true" />}>
+    <Suspense fallback={<PageSkeleton title="บัญชีของฉัน" />}>
       <AccountContent />
     </Suspense>
   );

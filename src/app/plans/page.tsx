@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { PageSkeleton } from "@/components/page-skeleton";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { IconBack } from "@/components/icons";
@@ -8,7 +9,7 @@ import { AiChat } from "@/components/ai-chat";
 
 export default function PlansPage() {
   return (
-    <Suspense fallback={<div className="screen" aria-busy="true" />}>
+    <Suspense fallback={<PageSkeleton title="เป้าหมายและบิล" />}>
       <PlansContent />
     </Suspense>
   );

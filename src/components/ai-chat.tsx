@@ -29,6 +29,7 @@ export function AiChat() {
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [closing, setClosing] = useState(false);
   // Whether finished answers are read aloud. Remembered on this device.
   const [voiceOn, setVoiceOn] = useState(() => typeof window === "undefined" || window.localStorage.getItem(VOICE_KEY) !== "off");
   const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
@@ -50,14 +51,20 @@ export function AiChat() {
     setSpeakingIndex(null);
   }
 
+  // Plays the closing animation, then forgets the chat.
   function close() {
+    if (closing) return;
     requestRef.current?.abort();
     stopVoice();
-    setOpen(false);
-    setMessages([]);
-    setDraft("");
-    setError(null);
-    setBusy(false);
+    setClosing(true);
+    window.setTimeout(() => {
+      setOpen(false);
+      setClosing(false);
+      setMessages([]);
+      setDraft("");
+      setError(null);
+      setBusy(false);
+    }, 180);
   }
 
   useEffect(() => {
@@ -163,7 +170,7 @@ export function AiChat() {
       )}
 
       {open ? (
-        <div className="ai-layer" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && close()}>
+        <div className={closing ? "ai-layer closing" : "ai-layer"} role="presentation" onMouseDown={(e) => e.target === e.currentTarget && close()}>
           <div className="ai-window glass" role="dialog" aria-modal="true" aria-labelledby="ai-title">
             <div className="ai-top">
               <span className="ai-icon"><IconSparkle size={18} /></span>

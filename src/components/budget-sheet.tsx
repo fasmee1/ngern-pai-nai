@@ -1,4 +1,5 @@
 "use client";
+import { useExit } from "./use-exit";
 import { IconClose } from "./icons";
 
 import { useState, useTransition } from "react";
@@ -39,12 +40,14 @@ export function BudgetSheet({
     });
   }
 
+  const [closing, close] = useExit(onClose);
+
   return (
-    <div className="sheet-layer" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={closing ? "sheet-layer closing" : "sheet-layer"} role="presentation" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div className="sheet glass" role="dialog" aria-modal="true" aria-labelledby="budget-title">
         <div className="sheet-head">
           <h2 id="budget-title">ตั้งงบเดือนนี้</h2>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="ปิด"><IconClose size={20} /></button>
+          <button type="button" className="icon-btn" onClick={close} aria-label="ปิด"><IconClose size={20} /></button>
         </div>
         <p className="sheet-hint">เว้นว่างไว้ถ้าไม่อยากตั้งงบหมวดนั้น</p>
 

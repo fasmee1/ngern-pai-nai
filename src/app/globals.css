@@ -71,8 +71,8 @@ body {
     radial-gradient(46% 52% at 22% 42%, rgb(44 120 252 / 0.3), transparent 72%),
     radial-gradient(52% 58% at 78% 38%, rgb(145 141 246 / 0.46), transparent 72%),
     radial-gradient(38% 36% at 52% 74%, rgb(190 213 254 / 0.5), transparent 76%);
-  filter: blur(26px);
   animation: drift 16s ease-in-out infinite alternate;
+  will-change: transform;
 }
 
 @keyframes drift {
@@ -108,8 +108,7 @@ body {
   padding: 4px 14px;
   border: 1px solid rgb(var(--surface-rgb) / 0.8);
   border-radius: 9999px;
-  background: rgb(var(--surface-rgb) / 0.66);
-  backdrop-filter: blur(14px);
+  background: rgb(var(--surface-rgb) / 0.8);
   font-size: 14px;
   font-weight: 500;
 }
@@ -253,8 +252,7 @@ h1 {
 .glass {
   border: 1px solid rgb(232 232 232 / 0.9);
   border-radius: 16px;
-  background: rgb(var(--surface-rgb) / 0.78);
-  backdrop-filter: blur(18px) saturate(1.3);
+  background: rgb(var(--surface-rgb) / 0.86);
   box-shadow: var(--shadow-card);
 }
 
@@ -2096,3 +2094,20 @@ html[data-theme="dark"] .acct-chip[aria-checked="true"] { background: #25244a; }
   .cat-list { width: 100%; }
   .bc-amount span { font-size: 34px; }
 }
+
+/* Smooth popups: they fade and slide out before they are removed */
+.sheet-layer, .ai-layer { animation: fade 200ms var(--ease-out) both; }
+.sheet, .ai-window { animation: sheet-in 280ms var(--ease-out) both; will-change: transform, opacity; }
+.sheet-layer.closing, .ai-layer.closing { animation: fade-out 180ms ease-in forwards; pointer-events: none; }
+.sheet-layer.closing .sheet, .ai-layer.closing .ai-window { animation: sheet-out 180ms ease-in forwards; }
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes sheet-in { from { transform: translateY(32px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes sheet-out { to { transform: translateY(32px); opacity: 0; } }
+.page-card, .card { content-visibility: auto; contain-intrinsic-size: auto 160px; }
+@media (prefers-reduced-motion: reduce) {
+  .sheet-layer, .ai-layer, .sheet, .ai-window, .sheet-layer.closing, .ai-layer.closing, .sheet-layer.closing .sheet, .ai-layer.closing .ai-window { animation-duration: 1ms; }
+}
+
+.skeleton { min-height: 120px; animation: skeleton-pulse 1.4s ease-in-out infinite alternate; }
+@keyframes skeleton-pulse { from { opacity: 0.55; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .skeleton { animation: none; } }

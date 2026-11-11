@@ -10,6 +10,7 @@ import { billState, goalPercent, monthlyNeeded } from "@/lib/plans";
 import { formatBaht } from "@/lib/summary";
 import { thaiDateLabel, todayInBangkok } from "@/lib/dates";
 import { IconAdd, IconBudget, IconClose, IconTrash } from "./icons";
+import { useExit } from "./use-exit";
 import { AccountPicker } from "./account-picker";
 
 export function PlansClient({ data }: { data: PlansData }) {
@@ -167,12 +168,14 @@ function GoalSheet({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
     });
   }
 
+  const [closing, close] = useExit(onClose);
+
   return (
-    <div className="sheet-layer" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={closing ? "sheet-layer closing" : "sheet-layer"} role="presentation" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div className="sheet glass" role="dialog" aria-modal="true" aria-labelledby="goal-title">
         <div className="sheet-head">
           <h2 id="goal-title">ตั้งเป้าหมายออมเงิน</h2>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="ปิด"><IconClose size={20} /></button>
+          <button type="button" className="icon-btn" onClick={close} aria-label="ปิด"><IconClose size={20} /></button>
         </div>
         <div className="sheet-form">
           <label className="field">
@@ -215,12 +218,14 @@ function BillSheet({ data, onClose, onSaved }: { data: PlansData; onClose: () =>
     });
   }
 
+  const [closing, close] = useExit(onClose);
+
   return (
-    <div className="sheet-layer" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={closing ? "sheet-layer closing" : "sheet-layer"} role="presentation" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div className="sheet glass" role="dialog" aria-modal="true" aria-labelledby="bill-title">
         <div className="sheet-head">
           <h2 id="bill-title">เพิ่มบิลประจำเดือน</h2>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="ปิด"><IconClose size={20} /></button>
+          <button type="button" className="icon-btn" onClick={close} aria-label="ปิด"><IconClose size={20} /></button>
         </div>
         <div className="sheet-form">
           <label className="field">

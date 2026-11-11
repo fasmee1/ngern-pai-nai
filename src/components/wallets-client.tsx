@@ -11,6 +11,7 @@ import { thaiDateLabel, todayInBangkok } from "@/lib/dates";
 import { MAX_NOTE } from "@/lib/input";
 import { accountLogoCode } from "@/lib/banks";
 import { IconAdd, IconClose, IconTransfer, IconTrash, IconWallet } from "./icons";
+import { useExit } from "./use-exit";
 import { BankLogo } from "./bank-logo";
 import { BankPicker } from "./bank-picker";
 import { AccountPicker } from "./account-picker";
@@ -125,12 +126,14 @@ function TransferSheet({ data, onClose, onSaved }: { data: WalletsData; onClose:
     setTo(from);
   }
 
+  const [closing, close] = useExit(onClose);
+
   return (
-    <div className="sheet-layer" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={closing ? "sheet-layer closing" : "sheet-layer"} role="presentation" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div className="sheet glass" role="dialog" aria-modal="true" aria-labelledby="transfer-title">
         <div className="sheet-head">
           <h2 id="transfer-title">ย้ายเงิน</h2>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="ปิด"><IconClose size={20} /></button>
+          <button type="button" className="icon-btn" onClick={close} aria-label="ปิด"><IconClose size={20} /></button>
         </div>
 
         <form action={action} className="sheet-form">
@@ -186,12 +189,14 @@ function AddBankSheet({ have, onClose, onSaved }: { have: string[]; onClose: () 
     });
   }
 
+  const [closing, close] = useExit(onClose);
+
   return (
-    <div className="sheet-layer" role="presentation" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+    <div className={closing ? "sheet-layer closing" : "sheet-layer"} role="presentation" onMouseDown={(e) => e.target === e.currentTarget && close()}>
       <div className="sheet glass" role="dialog" aria-modal="true" aria-labelledby="bank-title">
         <div className="sheet-head">
           <h2 id="bank-title">เพิ่มธนาคาร</h2>
-          <button type="button" className="icon-btn" onClick={onClose} aria-label="ปิด"><IconClose size={20} /></button>
+          <button type="button" className="icon-btn" onClick={close} aria-label="ปิด"><IconClose size={20} /></button>
         </div>
         <BankPicker exclude={have} pending={pending} error={error} confirmLabel="เพิ่มบัญชี" onConfirm={save} />
       </div>
