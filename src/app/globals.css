@@ -2157,3 +2157,26 @@ html[data-theme="dark"] .acct-chip[aria-checked="true"] { background: #25244a; }
 
 .card, .page-card { border-radius: 24px; }
 .ai-fab { width: 48px; height: 48px; bottom: calc(100px + env(safe-area-inset-bottom)); }
+
+/* Balance card, calmer: plain white card, ink numbers, color only where it means something */
+.balance-card {
+  color: var(--ink);
+  background: rgb(var(--surface-rgb));
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  padding: 20px 20px 18px;
+  box-shadow: var(--shadow-card);
+}
+.balance-card::before, .balance-card::after { content: none; }
+.bc-label { color: var(--ink-soft); font-size: 14px; font-weight: 500; letter-spacing: 0; }
+.bc-amount { margin-top: 4px; }
+.bc-amount span { font-size: 42px; font-weight: 700; letter-spacing: -0.035em; color: var(--ink); }
+.bc-amount small { color: var(--ink-soft); font-size: 15px; font-weight: 500; }
+.bc-meter { height: 6px; margin-top: 16px; background: #efeff4; }
+.bc-meter span { background: #5b57d6; }
+.bc-note { color: var(--ink-soft); font-size: 13px; }
+.bc-row { grid-template-columns: 1fr 1fr; gap: 0; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); }
+.bc-row > div { padding: 0 0 0 12px; border: 0; border-radius: 0; background: none; border-left: 3px solid #2f9e6b; }
+.bc-row > div + div { margin-left: 16px; border-left-color: #e0654f; }
+.bc-row dt { color: var(--ink-soft); font-size: 12.5px; letter-spacing: 0; }
+.bc-row dd { color: var(--ink); font-size: 19px; font-weight: 600; }
