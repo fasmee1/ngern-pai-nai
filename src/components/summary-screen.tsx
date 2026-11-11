@@ -154,6 +154,7 @@ export function SummaryView({
                   <span className="dot" style={{ background: slice.color }} />
                   <span className="cat-name">{slice.name}</span>
                   <span className="cat-amt">{formatBaht(slice.spentSatang)}</span>
+                  <span className="cat-bar" aria-hidden="true"><span style={{ width: `${Math.max(3, Math.round(slice.share * 100))}%`, background: slice.color }} /></span>
                 </button>
               </li>
             ))}
@@ -162,8 +163,14 @@ export function SummaryView({
       </section>
 
       <nav className="shortcuts" aria-label="ทางลัด">
-        <Link href="/plans" className="shortcut"><IconTarget size={18} />เป้าหมายและบิล</Link>
-        <Link href="/wallets" className="shortcut"><IconTransfer size={18} />บัญชีและย้ายเงิน</Link>
+        <Link href="/plans" className="shortcut">
+          <span className="shortcut-icon"><IconTarget size={20} /></span>
+          <span className="shortcut-text"><strong>เป้าหมายและบิล</strong><small>ออมเงิน · บิลประจำเดือน</small></span>
+        </Link>
+        <Link href="/wallets" className="shortcut">
+          <span className="shortcut-icon"><IconTransfer size={20} /></span>
+          <span className="shortcut-text"><strong>บัญชีเงิน</strong><small>ย้ายเงินระหว่างบัญชี</small></span>
+        </Link>
       </nav>
 
       <CompareSummaryCard comparison={comparison} beforeLabel={beforeLabel} />
